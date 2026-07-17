@@ -16,6 +16,23 @@ from scripts.freeze_route_a_v31_both_valid_protocol import GATE_THRESHOLDS
 TOLERANCE = 1e-12
 
 
+def _audit_equivalent(left: Any, right: Any) -> bool:
+    """Exact structural comparison with tolerance only for numeric roundoff."""
+    if isinstance(left, bool) or isinstance(right, bool):
+        return left is right
+    if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+        return abs(float(left) - float(right)) <= TOLERANCE
+    if isinstance(left, dict) and isinstance(right, dict):
+        return left.keys() == right.keys() and all(
+            _audit_equivalent(left[key], right[key]) for key in left
+        )
+    if isinstance(left, list) and isinstance(right, list):
+        return len(left) == len(right) and all(
+            _audit_equivalent(a, b) for a, b in zip(left, right)
+        )
+    return left == right
+
+
 def _rename_v2(value: Any) -> Any:
     if isinstance(value, dict):
         return {
@@ -98,7 +115,7 @@ def build_audit(
         "frozen_horizons_and_primary_bound": horizon_binding_matches,
         "bounded_rows_unique_and_exact": bounded_row_identity_matches,
         "raw_rows_independently_recomputed": all(
-            raw_summary.get(key) == recomputed.get(key)
+            _audit_equivalent(raw_summary.get(key), recomputed.get(key))
             for key in (
                 "events",
                 "event_set_hash",

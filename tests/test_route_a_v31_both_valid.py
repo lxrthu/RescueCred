@@ -1,7 +1,10 @@
 import json
 from pathlib import Path
 
-from scripts.audit_route_a_v31_both_valid_bounded import build_audit
+from scripts.audit_route_a_v31_both_valid_bounded import (
+    _audit_equivalent,
+    build_audit,
+)
 from scripts.build_route_a_both_valid_dev_events import _schema_valid
 from scripts.freeze_route_a_v31_both_valid_protocol import (
     GATE_THRESHOLDS,
@@ -222,6 +225,16 @@ def test_both_valid_audit_rejects_lock_or_raw_row_tampering():
     inputs["protocol_lock_sha256"] = "different"
     _, gate = build_audit(**inputs)
     assert gate["passed"] is False
+
+
+def test_audit_recompute_allows_only_machine_precision_roundoff():
+    assert _audit_equivalent(0.4485714285714286, 0.44857142857142857)
+    assert _audit_equivalent(
+        {"primary": {"score": 0.4485714285714286, "wins": 1}},
+        {"primary": {"score": 0.44857142857142857, "wins": 1}},
+    )
+    assert not _audit_equivalent(0.4485714285714286, 0.4486)
+    assert not _audit_equivalent({"wins": 1}, {"wins": 2})
     inputs = _audit_inputs()
     inputs["recomputed"]["primary"] = {**inputs["recomputed"]["primary"], "score_improvement": -1.0}
     _, gate = build_audit(**inputs)
