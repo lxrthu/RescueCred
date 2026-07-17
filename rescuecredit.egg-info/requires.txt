@@ -1,0 +1,17 @@
+openai>=1.40
+python-dotenv>=1.0
+PyYAML>=6.0
+
+[dev]
+pytest>=8.0
+ruff>=0.5
+
+[train]
+torch>=2.4
+transformers>=4.45
+accelerate>=1.0
+datasets>=3.0
+peft>=0.13
+trl>=0.12
+deepspeed>=0.15
+wandb>=0.18

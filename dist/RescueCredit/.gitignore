@@ -1,0 +1,12 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+outputs/runs/
+outputs/checkpoints/
+outputs/events/
+.aris/traces/
+data/raw/DAMO-ConvAI/.git/
+

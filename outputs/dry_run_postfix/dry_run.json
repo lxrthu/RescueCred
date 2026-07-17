@@ -1,0 +1,8 @@
+{
+  "config_hash": "d0a62f0386b75c1df18dba26c391a89d0675dcaa7f64c8159e56d80d43bac3a3",
+  "method": "rescuecredit",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "split_hash": "3ec99f95eb65e412ffc2f3917ab64c5961218b2289aaae5bab063ebdc95e35f7",
+  "status": "DRY_RUN_OK",
+  "tasks": 138
+}

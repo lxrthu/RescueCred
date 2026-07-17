@@ -1,0 +1,41 @@
+{
+  "api_families_ood": 8,
+  "api_families_train": 59,
+  "available_tools_contract": {
+    "all_runtime_tool_sets_reference_independent": true,
+    "construction": "source filename plus schema prerequisite closure",
+    "reference_actions_used_for_construction": false,
+    "reference_actions_used_for_offline_coverage_check": true
+  },
+  "dev": 18,
+  "executable_after_filter": 253,
+  "full_shadow_eval": 30,
+  "leakage_checks": {
+    "normalized_goal_cross_split": 0,
+    "ood_atomic_tool_overlap_with_train": 0,
+    "ood_family_overlap_with_train": 0,
+    "reference_action_instance_cross_split": 0
+  },
+  "name": "API-Bank-derived controlled environment",
+  "not_official_leaderboard": true,
+  "official_raw_dialogues": 264,
+  "rejected": {
+    "duplicate": 0,
+    "parse_failure": 10,
+    "public_tool_coverage": 0,
+    "reference_year_mismatch": 1
+  },
+  "seed": 20260714,
+  "source_commit": "483554eae102996f5ec1f4feab4e78ef29c2a394",
+  "source_repository": "https://github.com/AlibabaResearch/DAMO-ConvAI/tree/main/api-bank",
+  "split_conflict_excluded": 45,
+  "split_hashes": {
+    "dev": "6bef9dd6ddb719320084c67752dcaaf7b3245267e7ce9c2881659b16b331ea0a",
+    "test_id": "804f7a53837f5ae2f85ac92d7d315fd12996764ad3e2fcdca3a90fda05ccf0e9",
+    "test_tool_ood": "b65041ff47a3cfa28c7744cb839b404ab2f474f3cfe126d3f6f9e105587cab12",
+    "train": "10c9461aa85ca890118cae06a8af05ee0275222a3b35da865c7840790f1179c6"
+  },
+  "test_id": 23,
+  "test_tool_ood": 29,
+  "train": 138
+}

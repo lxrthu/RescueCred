@@ -1,0 +1,43 @@
+{
+  "contract_rejected_counts": {
+    "single_step_unique_identifier": 11,
+    "two_step_visible_dependency": 8
+  },
+  "counts": {
+    "dev": 6,
+    "test_id": 6,
+    "train": 29
+  },
+  "name": "API-Bank causal-identifiable subset",
+  "not_official_leaderboard": true,
+  "reference_actions_runtime_visibility": "forbidden",
+  "selected_total": 41,
+  "selection_reference_usage": "offline integrity scoring only; forbidden in Harness observations and training labels",
+  "selection_rules": [
+    "single reference action with one uniquely visible *_id value",
+    "exactly two tools/actions where action 1 uniquely produces one required input of action 2",
+    "producer action inputs must be semantically supported by visible user context",
+    "deterministic mutation must be corrected to the reference action by the runtime reference-free Harness"
+  ],
+  "source_dataset": "data\\api_bank_controlled_v1",
+  "source_split_hashes": {
+    "dev": "45d09efbe4c8d3dff65bfebb824309c61859eb6dd82cac1779d50834cfd2a7b0",
+    "test_id": "8b8c12214600be421f22c17f7c7332b3aeeff82bd15995c5ff1cdbf9cd7b524e",
+    "test_tool_ood": "4953542a602d8ccc7056d8b369807afb0d1a751726963c75060c6873a1b39f00",
+    "train": "f2721aa032aeee80ec8643ffb820cf2458cfda54aeae5e337de1de6651d71b01"
+  },
+  "split_hashes": {
+    "dev": "25cc7ff25ec993629d981a6953338d581e0a6da13b77098026b84195e9dc00a8",
+    "test_id": "0b372ef79b6f4cb78120bbd7e2a284cd261d8ca7b027803302d1f5b9f2101186",
+    "train": "4923d0f710145f939375f44a0c53d77e94a87dd0a4e9ef0ec5fa3b53ca225a19"
+  },
+  "structural_candidate_counts": {
+    "single_step_unique_identifier": 15,
+    "two_step_visible_dependency": 45
+  },
+  "type_counts": {
+    "single_step_unique_identifier": 4,
+    "two_step_visible_dependency": 37
+  },
+  "version": "api_bank_causal_v1"
+}

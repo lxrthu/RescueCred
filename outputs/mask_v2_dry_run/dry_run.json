@@ -1,0 +1,8 @@
+{
+  "config_hash": "af9c318f77557b1cd51e73082187d7e3938ff6245f9af138839ba3c61b70cadb",
+  "method": "mask_correction_v2",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "split_hash": "3ec99f95eb65e412ffc2f3917ab64c5961218b2289aaae5bab063ebdc95e35f7",
+  "status": "DRY_RUN_OK",
+  "tasks": 138
+}

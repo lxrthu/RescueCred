@@ -1,0 +1,16 @@
+{
+  "config_hash": "dae5eea209f82668c8017ff8d8b168480fecd4b51512f47703659119f3690687",
+  "method": "rescuecredit_v2",
+  "model": "dummy",
+  "reference_free_curriculum": true,
+  "split_hash": "f2721aa032aeee80ec8643ffb820cf2458cfda54aeae5e337de1de6651d71b01",
+  "status": "DRY_RUN_OK",
+  "tasks": 138,
+  "visible_curriculum_fraction": 0.75,
+  "visible_pool_hash": "a0184cccdeb2572a09d83c958c3d5383efb759ebef9a2b810625567cdde9b64d",
+  "visible_pool_size": 67,
+  "visible_reason_pool_sizes": {
+    "unique_visible_identifier": 13,
+    "visible_tool_dependency": 54
+  }
+}

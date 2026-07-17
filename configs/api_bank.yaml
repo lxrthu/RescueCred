@@ -1,0 +1,38 @@
+experiment:
+  name: api_bank_rescuecredit
+  seed: 42
+model:
+  name_or_path: Qwen/Qwen2.5-7B-Instruct
+  revision: a09a35458c702b33eeacc393d103063234e8bc28
+  dtype: bfloat16
+  max_seq_len: 4096
+environment:
+  manifest: data/api_bank_controlled_v1/manifest.json
+  max_steps: 12
+harness:
+  condition: H3_auto_correct
+  teachable_patches:
+    - missing_required_argument
+    - wrong_tool_replace
+    - premature_finish
+  permanent_safety_patches:
+    - permission_guard
+    - irreversible_action_confirmation
+  first_teachable_event_only: true
+audit:
+  mode: uniform
+  p_uniform: 0.20
+  p_min: 0.05
+  mu_beta: 0.95
+  max_shadow_steps: 12
+training:
+  methods: [naive_h_grpo, mask_correction, rescuecredit]
+  group_size: 8
+  lambda_corr: 0.10
+  total_interaction_budget: 50000
+  pilot_seed: 42
+  confirmatory_seeds: [42, 43, 44]
+evaluation:
+  run_harness_on: true
+  run_harness_off: true
+  bootstrap_samples: 10000

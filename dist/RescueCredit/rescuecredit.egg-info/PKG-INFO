@@ -1,0 +1,46 @@
+Metadata-Version: 2.4
+Name: rescuecredit
+Version: 0.1.0
+Summary: Provenance-aware counterfactual credit assignment for corrected tool agents
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: openai>=1.40
+Requires-Dist: python-dotenv>=1.0
+Requires-Dist: PyYAML>=6.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: ruff>=0.5; extra == "dev"
+Provides-Extra: train
+Requires-Dist: torch>=2.4; extra == "train"
+Requires-Dist: transformers>=4.45; extra == "train"
+Requires-Dist: accelerate>=1.0; extra == "train"
+Requires-Dist: datasets>=3.0; extra == "train"
+Requires-Dist: peft>=0.13; extra == "train"
+Requires-Dist: trl>=0.12; extra == "train"
+Requires-Dist: deepspeed>=0.15; extra == "train"
+Requires-Dist: wandb>=0.18; extra == "train"
+
+# RescueCredit
+
+本仓库实现技术路线中的 Rescue-MDP、随机 residual shadow audit、Patch EMA、token provenance 路由、可回放 API-Bank-derived controlled environment、三类 corrective patch，以及面向 H200 的训练/评测入口。
+
+## 快速验证
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+pytest
+python scripts/run_toy.py --output-dir outputs/toy
+python scripts/prepare_api_bank_controlled.py
+python scripts/run_api_bank_smoke.py --split dev --limit 30
+```
+
+Azure 连通性：先复制 `.env.example` 为 `.env` 并填写轮换后的密钥，然后运行：
+
+```bash
+python scripts/check_azure.py
+```
+
+完整云端步骤见 `docs/CLOUD_RUN_CN.md`。所有核心输出为 JSON/JSONL/CSV；模拟 smoke 明确标记 `not_research_evidence=true`。
+

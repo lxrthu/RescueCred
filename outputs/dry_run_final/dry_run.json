@@ -1,0 +1,7 @@
+{
+  "decision_points": 334,
+  "method": "rescuecredit",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "status": "DRY_RUN_OK",
+  "tasks": 171
+}

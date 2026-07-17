@@ -1,0 +1,6 @@
+seed: 20260714
+audit_probabilities: [0.05, 0.10, 0.20, 0.40, 1.0]
+audit_samples: 100000
+mu_beta: 0.95
+output_dir: outputs/toy
+

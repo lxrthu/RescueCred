@@ -1,0 +1,28 @@
+{
+  "provenance": "transcribed from user-pasted remote quality_gate.json on 2026-07-16; remote artifact path outputs/appworld_harness_audit_27_v8_final_holdout/quality_gate.json",
+  "selector": "Azure GPT-4o with reference-free candidate provenance",
+  "split": "dev",
+  "offset": 30,
+  "tasks": 27,
+  "clean_cases": 75,
+  "corrupt_cases": 117,
+  "visible_support_cases": 80,
+  "corrections": 34,
+  "correct_corrections": 23,
+  "correction_precision": 0.6764705882352942,
+  "coverage": 0.2905982905982906,
+  "single_step_rescue_rate": 0.19658119658119658,
+  "supported_coverage": 0.2875,
+  "harm_rate": 0.0,
+  "public_schema_match_rate": 1.0,
+  "reference_execution_failure_rate": 0.0,
+  "quality_gate_thresholds": {
+    "min_correction_precision": 0.9,
+    "min_coverage": 0.1,
+    "min_single_step_rescue_rate": 0.1,
+    "min_supported_coverage": 0.1,
+    "max_harm_rate": 0.01
+  },
+  "quality_gate_passed": false,
+  "authorizes_v2_training_smoke": false
+}

@@ -1,0 +1,57 @@
+{
+  "environment": "exact Rescue-MDP",
+  "estimator": [
+    {
+      "bias": -0.00839999999999999,
+      "empirical_variance": 4.825529439999999,
+      "mean": 0.19160000000000002,
+      "mse": 4.825599999999999,
+      "p": 0.05,
+      "samples": 100000,
+      "theoretical_variance": 4.749999999999999,
+      "true_g0": 0.2
+    },
+    {
+      "bias": 0.002650000000000041,
+      "empirical_variance": 2.239392977499999,
+      "mean": 0.20265000000000005,
+      "mse": 2.2393999999999994,
+      "p": 0.1,
+      "samples": 100000,
+      "theoretical_variance": 2.2499999999999996,
+      "true_g0": 0.2
+    },
+    {
+      "bias": -0.00017499999999995297,
+      "empirical_variance": 1.0002624693749997,
+      "mean": 0.19982500000000006,
+      "mse": 1.0002624999999996,
+      "p": 0.2,
+      "samples": 100000,
+      "theoretical_variance": 0.9999999999999998,
+      "true_g0": 0.2
+    },
+    {
+      "bias": -0.00011249999999995985,
+      "empirical_variance": 0.3750281123437499,
+      "mean": 0.19988750000000005,
+      "mse": 0.3750281249999998,
+      "p": 0.4,
+      "samples": 100000,
+      "theoretical_variance": 0.3749999999999999,
+      "true_g0": 0.2
+    },
+    {
+      "bias": 0.0,
+      "empirical_variance": 0.0,
+      "mean": 0.2,
+      "mse": 0.0,
+      "p": 1.0,
+      "samples": 100000,
+      "theoretical_variance": 0.0,
+      "true_g0": 0.2
+    }
+  ],
+  "not_research_evidence": false,
+  "q_records": 45
+}

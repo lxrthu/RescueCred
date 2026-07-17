@@ -1,0 +1,5 @@
+c
+
+# 跑完后 Ctrl+C，然后返回：
+cat outputs/rescuecredit_v2_causal_smoke_terminal_receipts_seed42/smoke_gate.json
+cat outputs/rescuecredit_v2_causal_smoke_terminal_receipts_seed42/run_summary.json

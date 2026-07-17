@@ -1,0 +1,10 @@
+{
+  "counterfactual_returns": {
+    "one": 10,
+    "zero": 10
+  },
+  "eligible_tasks": 10,
+  "environment_support_gate_pass": true,
+  "g0_variance": 0.25,
+  "note": "deterministic environment-support gate; model Full Shadow still must pass its own Var(G0)>0 gate"
+}

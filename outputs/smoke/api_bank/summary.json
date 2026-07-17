@@ -1,0 +1,9 @@
+{
+  "episodes": 114,
+  "h0_success_rate": 0.0,
+  "h3_success_rate": 1.0,
+  "not_research_evidence": true,
+  "reason": "mechanically injected errors for infrastructure validation",
+  "replay_failure_rate": 0.0,
+  "tasks": 19
+}

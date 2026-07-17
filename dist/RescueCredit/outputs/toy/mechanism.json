@@ -1,0 +1,212 @@
+[
+  {
+    "condition": "H0",
+    "group_reward_variance": 0.2222222222222222,
+    "naive_gradient_alignment": 1.0,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.2222222222222222,
+    "rescuecredit_gradient_alignment": 0.8660254037844387,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375,
+      -0.0175
+    ],
+    "state": "choose_tool"
+  },
+  {
+    "condition": "H1",
+    "group_reward_variance": 0.2222222222222222,
+    "naive_gradient_alignment": 1.0,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.2222222222222222,
+    "rescuecredit_gradient_alignment": 0.8660254037844387,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375,
+      -0.0175
+    ],
+    "state": "choose_tool"
+  },
+  {
+    "condition": "H2",
+    "group_reward_variance": 0.0,
+    "naive_gradient_alignment": NaN,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.2222222222222222,
+    "rescuecredit_gradient_alignment": 0.8660254037844387,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375,
+      -0.0175
+    ],
+    "state": "choose_tool"
+  },
+  {
+    "condition": "H3",
+    "group_reward_variance": 0.0,
+    "naive_gradient_alignment": NaN,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.2222222222222222,
+    "rescuecredit_gradient_alignment": 0.8660254037844387,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375,
+      -0.0175
+    ],
+    "state": "choose_tool"
+  },
+  {
+    "condition": "Hplacebo",
+    "group_reward_variance": 0.2222222222222222,
+    "naive_gradient_alignment": 1.0,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.2222222222222222,
+    "rescuecredit_gradient_alignment": 0.8660254037844387,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375,
+      -0.0175
+    ],
+    "state": "choose_tool"
+  },
+  {
+    "condition": "H0",
+    "group_reward_variance": 0.1875,
+    "naive_gradient_alignment": 1.0,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.1875,
+    "rescuecredit_gradient_alignment": 0.7745966692414834,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375,
+      -0.0175,
+      0.00625
+    ],
+    "state": "fill_args"
+  },
+  {
+    "condition": "H1",
+    "group_reward_variance": 0.1875,
+    "naive_gradient_alignment": 1.0,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.1875,
+    "rescuecredit_gradient_alignment": 0.7745966692414834,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375,
+      -0.0175,
+      0.00625
+    ],
+    "state": "fill_args"
+  },
+  {
+    "condition": "H2",
+    "group_reward_variance": 0.1875,
+    "naive_gradient_alignment": 0.3333333333333333,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.1875,
+    "rescuecredit_gradient_alignment": 0.7745966692414834,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375,
+      -0.0175,
+      0.00625
+    ],
+    "state": "fill_args"
+  },
+  {
+    "condition": "H3",
+    "group_reward_variance": 0.1875,
+    "naive_gradient_alignment": 0.3333333333333333,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.1875,
+    "rescuecredit_gradient_alignment": 0.7745966692414834,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375,
+      -0.0175,
+      0.00625
+    ],
+    "state": "fill_args"
+  },
+  {
+    "condition": "Hplacebo",
+    "group_reward_variance": 0.1875,
+    "naive_gradient_alignment": 1.0,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.1875,
+    "rescuecredit_gradient_alignment": 0.7745966692414834,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375,
+      -0.0175,
+      0.00625
+    ],
+    "state": "fill_args"
+  },
+  {
+    "condition": "H0",
+    "group_reward_variance": 0.25,
+    "naive_gradient_alignment": 1.0,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.25,
+    "rescuecredit_gradient_alignment": 1.0,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375
+    ],
+    "state": "tool_response"
+  },
+  {
+    "condition": "H1",
+    "group_reward_variance": 0.25,
+    "naive_gradient_alignment": 1.0,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.25,
+    "rescuecredit_gradient_alignment": 1.0,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375
+    ],
+    "state": "tool_response"
+  },
+  {
+    "condition": "H2",
+    "group_reward_variance": 0.0,
+    "naive_gradient_alignment": NaN,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.25,
+    "rescuecredit_gradient_alignment": 1.0,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375
+    ],
+    "state": "tool_response"
+  },
+  {
+    "condition": "H3",
+    "group_reward_variance": 0.0,
+    "naive_gradient_alignment": NaN,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.25,
+    "rescuecredit_gradient_alignment": 1.0,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375
+    ],
+    "state": "tool_response"
+  },
+  {
+    "condition": "Hplacebo",
+    "group_reward_variance": 0.25,
+    "naive_gradient_alignment": 1.0,
+    "pair_inversion_rate": 0.0,
+    "q0_variance": 0.25,
+    "rescuecredit_gradient_alignment": 1.0,
+    "rescuecredit_scores_from_audit": [
+      0.97625,
+      -0.01375
+    ],
+    "state": "tool_response"
+  }
+]

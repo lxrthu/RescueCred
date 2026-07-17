@@ -1,0 +1,1187 @@
+{
+  "AddAgenda": {
+    "description": "The API for adding a agenda item includes content, time and location.",
+    "name": "AddAgenda",
+    "optional": [],
+    "parameters": {
+      "content": {
+        "description": "The content of the agenda.",
+        "type": "str"
+      },
+      "location": {
+        "description": "The location of the agenda.",
+        "type": "str"
+      },
+      "time": {
+        "description": "The time for agenda. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "content",
+      "location",
+      "time",
+      "token"
+    ],
+    "source_file": "add_agenda.py"
+  },
+  "AddAlarm": {
+    "description": "The API for setting an alarm includes a parameter for the alarm time.",
+    "name": "AddAlarm",
+    "optional": [],
+    "parameters": {
+      "time": {
+        "description": "The time for alarm. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "time",
+      "token"
+    ],
+    "source_file": "add_alarm.py"
+  },
+  "AddMeeting": {
+    "description": "This API allows users to make a reservation for a meeting and store the meeting information (e.g., topic, time, location, attendees) in the database.",
+    "name": "AddMeeting",
+    "optional": [],
+    "parameters": {
+      "attendees": {
+        "description": "The attendees of the meeting, including names, positions and other information.",
+        "type": "list(str)"
+      },
+      "end_time": {
+        "description": "The end time of the meeting, in the pattern of %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "location": {
+        "description": "The location where the meeting to be held, no more than 100 characters.",
+        "type": "str"
+      },
+      "meeting_topic": {
+        "description": "The title of the meeting, no more than 50 characters.",
+        "type": "str"
+      },
+      "start_time": {
+        "description": "The start time of the meeting, in the pattern of %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "attendees",
+      "end_time",
+      "location",
+      "meeting_topic",
+      "start_time",
+      "token"
+    ],
+    "source_file": "add_meeting.py"
+  },
+  "AddReminder": {
+    "description": "The API for adding a reminder item includes content and time.",
+    "name": "AddReminder",
+    "optional": [],
+    "parameters": {
+      "content": {
+        "description": "The content of the conference.",
+        "type": "str"
+      },
+      "time": {
+        "description": "The time for conference. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "content",
+      "time",
+      "token"
+    ],
+    "source_file": "add_reminder.py"
+  },
+  "AddScene": {
+    "description": "This API adds a scene of smart home system, given the scene name and a list of smart devices",
+    "name": "AddScene",
+    "optional": [],
+    "parameters": {
+      "devices": {
+        "description": "The list of smart devices, containing the name and description. Format be like [{\"name\": \"light\", \"description\": \"Smart light in the kitchen\"}, {\"name\": \"oven\", \"description\": \"Smart oven in the kitchen\"}, {\"name\": \"range hood\", \"description\": \"Smart range hood in the kitchen\"}]",
+        "type": "list"
+      },
+      "name": {
+        "description": "The name of the scene.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "devices",
+      "name"
+    ],
+    "source_file": "add_scene.py"
+  },
+  "AppointmentRegistration": {
+    "description": "This API registers an appointment of hospital.",
+    "name": "AppointmentRegistration",
+    "optional": [],
+    "parameters": {
+      "date": {
+        "description": "The date of appointment. Format be like %Y-%m-%d",
+        "type": "str"
+      },
+      "doctor_name": {
+        "description": "The name of appointed doctor.",
+        "type": "str"
+      },
+      "patient_name": {
+        "description": "The name of patient.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "date",
+      "doctor_name",
+      "patient_name"
+    ],
+    "source_file": "appointment_registration.py"
+  },
+  "BookHotel": {
+    "description": "This API orders a hotel room. Two rooms are ordered if the number of adults is greater than 2. Only one order can be made at same time.",
+    "name": "BookHotel",
+    "optional": [],
+    "parameters": {
+      "adult_count": {
+        "description": "The number of adults.",
+        "type": "int"
+      },
+      "check_in_time": {
+        "description": "The time to check in. Format: %Y-%m-%d",
+        "type": "str"
+      },
+      "check_out_time": {
+        "description": "The time to check out. Format: %Y-%m-%d",
+        "type": "str"
+      },
+      "child_count": {
+        "description": "The number of children.",
+        "type": "int"
+      },
+      "hotel_name": {
+        "description": "The name of the hotel.",
+        "type": "str"
+      },
+      "room_count": {
+        "description": "The number of rooms to order.",
+        "type": "int"
+      }
+    },
+    "required": [
+      "adult_count",
+      "check_in_time",
+      "check_out_time",
+      "child_count",
+      "hotel_name",
+      "room_count"
+    ],
+    "source_file": "book_hotel.py"
+  },
+  "Calculator": {
+    "description": "This API provides basic arithmetic operations: addition, subtraction, multiplication, and division.",
+    "name": "Calculator",
+    "optional": [],
+    "parameters": {
+      "formula": {
+        "description": "The formula that needs to be calculated. Only integers are supported. Valid operators are +, -, *, /, and (, ). For example, '(1 + 2) * 3'.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "formula"
+    ],
+    "source_file": "calculator.py"
+  },
+  "CancelRegistration": {
+    "description": "This API cancels the registration of a patient given appointment ID.",
+    "name": "CancelRegistration",
+    "optional": [],
+    "parameters": {
+      "appointment_id": {
+        "description": "The ID of appointment.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "appointment_id"
+    ],
+    "source_file": "cancel_registration.py"
+  },
+  "CancelTimedSwitch": {
+    "description": "Cancels a timed switch for a smart device.",
+    "name": "CancelTimedSwitch",
+    "optional": [],
+    "parameters": {
+      "name": {
+        "description": "The name of the smart device.",
+        "type": "str"
+      },
+      "time": {
+        "description": "The time to switch the device on or off. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      }
+    },
+    "required": [
+      "name",
+      "time"
+    ],
+    "source_file": "cancel_timed_switch.py"
+  },
+  "CheckToken": {
+    "description": "Check the user token.",
+    "name": "CheckToken",
+    "optional": [],
+    "parameters": {
+      "token": {
+        "description": "The token of the user.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "token"
+    ],
+    "source_file": "check_token.py"
+  },
+  "DeleteAccount": {
+    "description": "Delete an account.",
+    "name": "DeleteAccount",
+    "optional": [],
+    "parameters": {
+      "token": {
+        "description": "The token of the user.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "token"
+    ],
+    "source_file": "delete_account.py"
+  },
+  "DeleteAgenda": {
+    "description": "The API for deleting a schedule item includes parameters for token, content, time, and location.",
+    "name": "DeleteAgenda",
+    "optional": [],
+    "parameters": {
+      "content": {
+        "description": "The content of the agenda.",
+        "type": "str"
+      },
+      "location": {
+        "description": "The location of the agenda.",
+        "type": "str"
+      },
+      "time": {
+        "description": "The time for agenda. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "content",
+      "location",
+      "time",
+      "token"
+    ],
+    "source_file": "delete_agenda.py"
+  },
+  "DeleteAlarm": {
+    "description": "The API for removing an alarm includes a parameter for the time.",
+    "name": "DeleteAlarm",
+    "optional": [],
+    "parameters": {
+      "time": {
+        "description": "The time for alarm. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "time",
+      "token"
+    ],
+    "source_file": "delete_alarm.py"
+  },
+  "DeleteMeeting": {
+    "description": "This API allows users to delete a reservation for a meeting and remove the meeting information in the database.",
+    "name": "DeleteMeeting",
+    "optional": [],
+    "parameters": {
+      "attendees": {
+        "description": "The attendees of the meeting, including names, positions and other information.",
+        "type": "list(str)"
+      },
+      "end_time": {
+        "description": "The end time of the meeting, in the pattern of %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "location": {
+        "description": "The location where the meeting to be held, no more than 100 characters.",
+        "type": "str"
+      },
+      "meeting_topic": {
+        "description": "The title of the meeting, no more than 50 characters.",
+        "type": "str"
+      },
+      "start_time": {
+        "description": "The start time of the meeting, in the pattern of %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "attendees",
+      "end_time",
+      "location",
+      "meeting_topic",
+      "start_time",
+      "token"
+    ],
+    "source_file": "delete_meeting.py"
+  },
+  "DeleteReminder": {
+    "description": "The API for deleting a reminder item includes content and time.",
+    "name": "DeleteReminder",
+    "optional": [],
+    "parameters": {
+      "content": {
+        "description": "The content of the conference.",
+        "type": "str"
+      },
+      "time": {
+        "description": "The time for conference. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "content",
+      "time",
+      "token"
+    ],
+    "source_file": "delete_reminder.py"
+  },
+  "DeleteScene": {
+    "description": "This API deletes a scene by its name.",
+    "name": "DeleteScene",
+    "optional": [],
+    "parameters": {
+      "name": {
+        "description": "The name of the scene.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "source_file": "delete_scene.py"
+  },
+  "Dictionary": {
+    "description": "This API searches the dictionary for a given keyword.",
+    "name": "Dictionary",
+    "optional": [],
+    "parameters": {
+      "keyword": {
+        "description": "The keyword to search.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "keyword"
+    ],
+    "source_file": "dictionary.py"
+  },
+  "DocumentQA": {
+    "description": "This API answers the question from a given document url.",
+    "name": "DocumentQA",
+    "optional": [],
+    "parameters": {
+      "question": {
+        "description": "The question to be answered.",
+        "type": "str"
+      },
+      "url": {
+        "description": "The url to download the document. It should end with .txt.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "question",
+      "url"
+    ],
+    "source_file": "document_qa.py"
+  },
+  "EmergencyKnowledge": {
+    "description": "This API searches for a given symptom for emergency knowledge.",
+    "name": "EmergencyKnowledge",
+    "optional": [],
+    "parameters": {
+      "symptom": {
+        "description": "The symptom to search.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "symptom"
+    ],
+    "source_file": "emergency_knowledge.py"
+  },
+  "ForgotPassword": {
+    "description": "Sends an email to the user with a link to reset the password. Need call twice, first with 'Forgot Password' status to get the verification code, then call again with 'Verification Code' status to change the password. Must pass the name of the parameters when calling the API, like ForgotPassword(status='Forgot Password', username='username').",
+    "name": "ForgotPassword",
+    "optional": [],
+    "parameters": {
+      "email": {
+        "description": "The email of the user. Only needed for the first call.",
+        "type": "str"
+      },
+      "new_password": {
+        "description": "The new password of the user. Only needed for the second call.",
+        "type": "str"
+      },
+      "status": {
+        "description": "'Forgot Password' for first call, after get the verification code, call again with 'Verification Code' to change the password.",
+        "type": "str"
+      },
+      "username": {
+        "description": "The username of the user. Only needed for the first call.",
+        "type": "str"
+      },
+      "verification_code": {
+        "description": "The verification code sent to the user. Only needed for the second call.",
+        "type": "int"
+      }
+    },
+    "required": [
+      "email",
+      "new_password",
+      "status",
+      "username",
+      "verification_code"
+    ],
+    "source_file": "forgot_password.py"
+  },
+  "GetUserToken": {
+    "description": "Get the user token by username and password.",
+    "name": "GetUserToken",
+    "optional": [],
+    "parameters": {
+      "password": {
+        "description": "The password of the user.",
+        "type": "str"
+      },
+      "username": {
+        "description": "The username of the user.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "password",
+      "username"
+    ],
+    "source_file": "get_user_token.py"
+  },
+  "ImageCaption": {
+    "description": "This API generates a caption for a given image.",
+    "name": "ImageCaption",
+    "optional": [],
+    "parameters": {
+      "url": {
+        "description": "The url to download the image. It should end with .jpg, .jpeg or .png.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "url"
+    ],
+    "source_file": "image_caption.py"
+  },
+  "ModifyAgenda": {
+    "description": "The API for modifying a schedule item includes parameters for content, time, and location.",
+    "name": "ModifyAgenda",
+    "optional": [],
+    "parameters": {
+      "content": {
+        "description": "The content of the agenda.",
+        "type": "str"
+      },
+      "location": {
+        "description": "The new location of the agenda.",
+        "type": "str"
+      },
+      "time": {
+        "description": "The new time for agenda. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "content",
+      "location",
+      "time",
+      "token"
+    ],
+    "source_file": "modify_agenda.py"
+  },
+  "ModifyAlarm": {
+    "description": "The API for modifying an alarm includes a parameter for the from_time to to_time.",
+    "name": "ModifyAlarm",
+    "optional": [],
+    "parameters": {
+      "from_time": {
+        "description": "The time for alarm which changed from. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "to_time": {
+        "description": "The time for alarm which changed to. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "from_time",
+      "to_time",
+      "token"
+    ],
+    "source_file": "modify_alarm.py"
+  },
+  "ModifyMeeting": {
+    "description": "This API allows users to modify a reservation for a meeting",
+    "name": "ModifyMeeting",
+    "optional": [],
+    "parameters": {
+      "attendees": {
+        "description": "The attendees of the meeting, including names, positions and other information.",
+        "type": "list(str)"
+      },
+      "end_time": {
+        "description": "The end time of the meeting, in the pattern of %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "location": {
+        "description": "The location where the meeting to be held, no more than 100 characters.",
+        "type": "str"
+      },
+      "meeting_topic": {
+        "description": "The title of the meeting, no more than 50 characters.",
+        "type": "str"
+      },
+      "start_time": {
+        "description": "The start time of the meeting, in the pattern of %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "attendees",
+      "end_time",
+      "location",
+      "meeting_topic",
+      "start_time",
+      "token"
+    ],
+    "source_file": "modify_meeting.py"
+  },
+  "ModifyPassword": {
+    "description": "The API for modifying the password of the account.",
+    "name": "ModifyPassword",
+    "optional": [],
+    "parameters": {
+      "new_password": {
+        "description": "The new password of the user.",
+        "type": "str"
+      },
+      "old_password": {
+        "description": "The old password of the user.",
+        "type": "str"
+      },
+      "token": {
+        "description": "The token of the user.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "new_password",
+      "old_password",
+      "token"
+    ],
+    "source_file": "modify_password.py"
+  },
+  "ModifyRegistration": {
+    "description": "This API modifies the registration of a patient given appointment ID.",
+    "name": "ModifyRegistration",
+    "optional": [],
+    "parameters": {
+      "appointment_id": {
+        "description": "The ID of appointment.",
+        "type": "str"
+      },
+      "new_appointment_date": {
+        "description": "The new appointment date. Format: %Y-%m-%d.",
+        "type": "str"
+      },
+      "new_appointment_doctor": {
+        "description": "The new appointment doctor.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "appointment_id",
+      "new_appointment_date",
+      "new_appointment_doctor"
+    ],
+    "source_file": "modify_registration.py"
+  },
+  "ModifyReminder": {
+    "description": "The API for deleting a reminder item includes content and time.",
+    "name": "ModifyReminder",
+    "optional": [],
+    "parameters": {
+      "content": {
+        "description": "The content of the conference.",
+        "type": "str"
+      },
+      "time": {
+        "description": "The time for conference. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "content",
+      "time",
+      "token"
+    ],
+    "source_file": "modify_reminder.py"
+  },
+  "ModifyScene": {
+    "description": "This API modifies a scene of smart home system, given the scene name and a list of smart devices",
+    "name": "ModifyScene",
+    "optional": [],
+    "parameters": {
+      "devices": {
+        "description": "The list of smart devices, containing the name and description.",
+        "type": "list"
+      },
+      "name": {
+        "description": "The name of the scene.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "devices",
+      "name"
+    ],
+    "source_file": "modify_scene.py"
+  },
+  "OpenBankAccount": {
+    "description": "This is an API for opening a bank account for a user, given the account, password and name.",
+    "name": "OpenBankAccount",
+    "optional": [],
+    "parameters": {
+      "account": {
+        "description": "The account for the user.",
+        "type": "str"
+      },
+      "name": {
+        "description": "account holder name.",
+        "type": "str"
+      },
+      "password": {
+        "description": "The password.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "account",
+      "name",
+      "password"
+    ],
+    "source_file": "open_bank_account.py"
+  },
+  "PlayMusic": {
+    "description": "This API triggers a music player to play music.",
+    "name": "PlayMusic",
+    "optional": [],
+    "parameters": {
+      "music_name": {
+        "description": "The name of the music to play.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "music_name"
+    ],
+    "source_file": "play_music.py"
+  },
+  "QueryAgenda": {
+    "description": "The API for getting a schedule item includes parameters for token, content, time, and location.",
+    "name": "QueryAgenda",
+    "optional": [],
+    "parameters": {
+      "content": {
+        "description": "The content of the agenda.",
+        "type": "str"
+      },
+      "location": {
+        "description": "The location of the agenda.",
+        "type": "str"
+      },
+      "time": {
+        "description": "The time for agenda. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "content",
+      "location",
+      "time",
+      "token"
+    ],
+    "source_file": "query_agenda.py"
+  },
+  "QueryAlarm": {
+    "description": "The API for querying alarm clock, help user to check the alarm clock they have set.",
+    "name": "QueryAlarm",
+    "optional": [],
+    "parameters": {
+      "time": {
+        "description": "The time for alarm. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "time",
+      "token"
+    ],
+    "source_file": "query_alarm.py"
+  },
+  "QueryBalance": {
+    "description": "This API queries the balance of a given user.",
+    "name": "QueryBalance",
+    "optional": [],
+    "parameters": {
+      "token": {
+        "description": "The token of the user.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "token"
+    ],
+    "source_file": "query_balance.py"
+  },
+  "QueryHealthData": {
+    "description": "This API queries the recorded health data in database of a given user and time span.",
+    "name": "QueryHealthData",
+    "optional": [],
+    "parameters": {
+      "end_time": {
+        "description": "The end time of the time span. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "start_time": {
+        "description": "The start time of the time span. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "user_id": {
+        "description": "The user id of the given user. Cases are ignored.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "end_time",
+      "start_time",
+      "user_id"
+    ],
+    "source_file": "query_health_data.py"
+  },
+  "QueryHistoryToday": {
+    "description": "This API queries the history of the given date.",
+    "name": "QueryHistoryToday",
+    "optional": [],
+    "parameters": {
+      "date": {
+        "description": "The date of the history. Format: %m-%d",
+        "type": "str"
+      }
+    },
+    "required": [
+      "date"
+    ],
+    "source_file": "query_history_today.py"
+  },
+  "QueryMeeting": {
+    "description": "This API allows users to query the information of a meeting.",
+    "name": "QueryMeeting",
+    "optional": [],
+    "parameters": {
+      "attendees": {
+        "description": "The attendees of the meeting, including names, positions and other information.",
+        "type": "list(str)"
+      },
+      "end_time": {
+        "description": "The end time of the meeting, in the pattern of %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "location": {
+        "description": "The location where the meeting to be held, no more than 100 characters.",
+        "type": "str"
+      },
+      "meeting_topic": {
+        "description": "The title of the meeting, no more than 50 characters.",
+        "type": "str"
+      },
+      "start_time": {
+        "description": "The start time of the meeting, in the pattern of %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "attendees",
+      "end_time",
+      "location",
+      "meeting_topic",
+      "start_time",
+      "token"
+    ],
+    "source_file": "query_meeting.py"
+  },
+  "QueryRegistration": {
+    "description": "This API queries the registration of a patient, given patient ID.",
+    "name": "QueryRegistration",
+    "optional": [],
+    "parameters": {
+      "date": {
+        "description": "The date of appointment. Format be like %Y-%m-%d",
+        "type": "str"
+      },
+      "patient_name": {
+        "description": "The name of patient.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "date",
+      "patient_name"
+    ],
+    "source_file": "query_registration.py"
+  },
+  "QueryReminder": {
+    "description": "The API for querying a reminder item includes content and time.",
+    "name": "QueryReminder",
+    "optional": [],
+    "parameters": {
+      "content": {
+        "description": "The content of the reminder.",
+        "type": "str"
+      },
+      "time": {
+        "description": "The time for the reminder. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "token": {
+        "description": "User's token.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "content",
+      "time",
+      "token"
+    ],
+    "source_file": "query_reminder.py"
+  },
+  "QueryScene": {
+    "description": "This API queries a scene of smart home system, given the scene name",
+    "name": "QueryScene",
+    "optional": [],
+    "parameters": {
+      "name": {
+        "description": "The name of the scene.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "name"
+    ],
+    "source_file": "query_scene.py"
+  },
+  "QueryStock": {
+    "description": "This API queries the stock price of a given stock code and date.",
+    "name": "QueryStock",
+    "optional": [],
+    "parameters": {
+      "date": {
+        "description": "The date of the stock price. Format: %Y-%m-%d",
+        "type": "str"
+      },
+      "stock_code": {
+        "description": "The stock code of the given stock.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "date",
+      "stock_code"
+    ],
+    "source_file": "query_stock.py"
+  },
+  "RecordHealthData": {
+    "description": "This API records the health data of a user.",
+    "name": "RecordHealthData",
+    "optional": [],
+    "parameters": {
+      "health_data": {
+        "description": "The health data, with the format like [{'name': 'blood_pressure', 'value': '120/80'}, {'name': 'heart_rate', 'value': '80'}]",
+        "type": "list"
+      },
+      "time": {
+        "description": "The time of health data. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      },
+      "user_id": {
+        "description": "The ID of user.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "health_data",
+      "time",
+      "user_id"
+    ],
+    "source_file": "record_health_data.py"
+  },
+  "RegisterUser": {
+    "description": "The API for registering a account, given the username, password and email.",
+    "name": "RegisterUser",
+    "optional": [],
+    "parameters": {
+      "email": {
+        "description": "The email of the user.",
+        "type": "str"
+      },
+      "password": {
+        "description": "The password of the user.",
+        "type": "str"
+      },
+      "username": {
+        "description": "The username of the user.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "email",
+      "password",
+      "username"
+    ],
+    "source_file": "register_user.py"
+  },
+  "SearchEngine": {
+    "description": "This API searches for a given keyword for search engine.",
+    "name": "SearchEngine",
+    "optional": [],
+    "parameters": {
+      "keyword": {
+        "description": "The keyword to search.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "keyword"
+    ],
+    "source_file": "search_engine.py"
+  },
+  "SendEmail": {
+    "description": "This API for sending email, given the receiver, subject and content.",
+    "name": "SendEmail",
+    "optional": [],
+    "parameters": {
+      "content": {
+        "description": "The content of the email.",
+        "type": "str"
+      },
+      "receiver": {
+        "description": "The receiver address of the email.",
+        "type": "str"
+      },
+      "subject": {
+        "description": "The subject address of the email.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "content",
+      "receiver",
+      "subject"
+    ],
+    "source_file": "send_email.py"
+  },
+  "SpeechRecognition": {
+    "description": "This API recognizes the speech from a given audio url.",
+    "name": "SpeechRecognition",
+    "optional": [],
+    "parameters": {
+      "url": {
+        "description": "The url to download the audio. It should end with .wav.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "url"
+    ],
+    "source_file": "speech_recognition.py"
+  },
+  "SymptomSearch": {
+    "description": "This API searches for a given symptom.",
+    "name": "SymptomSearch",
+    "optional": [],
+    "parameters": {
+      "symptom": {
+        "description": "The symptom to search.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "symptom"
+    ],
+    "source_file": "symptom_search.py"
+  },
+  "TimedSwitch": {
+    "description": "This API for setting a timed switch for a smart device.",
+    "name": "TimedSwitch",
+    "optional": [],
+    "parameters": {
+      "name": {
+        "description": "The name of the smart device.",
+        "type": "str"
+      },
+      "on": {
+        "description": "Whether to switch the device on or off.",
+        "type": "bool"
+      },
+      "time": {
+        "description": "The time to switch the device on or off. Format: %Y-%m-%d %H:%M:%S",
+        "type": "str"
+      }
+    },
+    "required": [
+      "name",
+      "on",
+      "time"
+    ],
+    "source_file": "timed_switch.py"
+  },
+  "ToolSearcher": {
+    "description": "Searches for relevant tools in library based on the keywords.",
+    "name": "ToolSearcher",
+    "optional": [],
+    "parameters": {
+      "keywords": {
+        "description": "The keyword to search for.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "keywords"
+    ],
+    "source_file": "tool_search.py"
+  },
+  "Translate": {
+    "description": "Translate the text to the target language.",
+    "name": "Translate",
+    "optional": [],
+    "parameters": {
+      "src": {
+        "description": "The text to be translated.",
+        "type": "str"
+      },
+      "src_lang": {
+        "description": "[Optional] The source language to translate from. Default is auto.",
+        "type": "str"
+      },
+      "tgt_lang": {
+        "description": "[Optional] The target language to translate to. Default is english/en.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "src",
+      "src_lang",
+      "tgt_lang"
+    ],
+    "source_file": "translate.py"
+  },
+  "Wiki": {
+    "description": "This API for searching a keyword in Wikipedia.",
+    "name": "Wiki",
+    "optional": [],
+    "parameters": {
+      "keyword": {
+        "description": "The keyword to search.",
+        "type": "str"
+      }
+    },
+    "required": [
+      "keyword"
+    ],
+    "source_file": "wiki.py"
+  }
+}

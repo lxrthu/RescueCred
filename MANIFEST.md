@@ -1,0 +1,100 @@
+# Research Output Manifest
+
+> Auto-maintained by ARIS skills. Tracks all generated artifacts across the research lifecycle.
+
+| Timestamp | Skill | File | Stage | Description |
+|-----------|-------|------|-------|-------------|
+| 2026-07-14 03:43 | /experiment-bridge | idea-stage/docs/research_contract.md | implementation | focused RescueCredit claims and gates |
+| 2026-07-14 03:43 | /experiment-bridge | refine-logs/EXPERIMENT_PLAN_20260714_034328.md | implementation | timestamped experiment plan |
+| 2026-07-14 03:43 | /experiment-bridge | refine-logs/EXPERIMENT_PLAN.md | implementation | latest experiment plan |
+| 2026-07-14 03:43 | /experiment-bridge | refine-logs/EXPERIMENT_TRACKER_20260714_034328.md | implementation | timestamped run tracker |
+| 2026-07-14 03:43 | /experiment-bridge | refine-logs/EXPERIMENT_TRACKER.md | implementation | latest run tracker |
+| 2026-07-14 03:43 | /experiment-bridge | refine-logs/EXPERIMENT_RESULTS_20260714_034328.md | implementation | timestamped initial results |
+| 2026-07-14 03:43 | /experiment-bridge | refine-logs/EXPERIMENT_RESULTS.md | implementation | latest initial results |
+| 2026-07-14 03:43 | /experiment-bridge | data/api_bank_controlled_v1/manifest.json | implementation | frozen official-source task counts and split hashes |
+| 2026-07-14 03:43 | /experiment-bridge | outputs/toy/summary.json | implementation | exact MDP and estimator sanity output |
+| 2026-07-14 03:43 | /experiment-bridge | outputs/smoke/api_bank/summary.json | implementation | non-evidence injected infrastructure smoke |
+| 2026-07-14 03:43 | /experiment-bridge | docs/CLOUD_RUN_CN.md | implementation | H200 execution and API key guide |
+| 2026-07-15 15:55 | /experiment-bridge | refine-logs/DEPLOYABLE_HARNESS_CODE_REVIEW_20260715_155529.md | implementation | timestamped local-only Stage 1 code review |
+| 2026-07-15 15:55 | /experiment-bridge | refine-logs/DEPLOYABLE_HARNESS_CODE_REVIEW.md | implementation | latest deployable Harness review and gate verdict |
+| 2026-07-15 15:55 | /experiment-bridge | docs/DEPLOYABLE_HARNESS_STAGE1_CN.md | implementation | reference isolation, quality thresholds and current audit result |
+| 2026-07-15 15:55 | /experiment-bridge | outputs/deployable_harness_stage1_patch.zip | implementation | server-ready Stage 1 source patch bundle |
+| 2026-07-15 15:55 | /experiment-bridge | environments/api_bank/correction_generator.py | implementation | frozen reference-free missing-argument proposal generator |
+| 2026-07-15 15:55 | /experiment-bridge | scripts/cloud/run_deployable_harness_qwen_gate.sh | implementation | single-GPU frozen-Qwen Harness quality gate |
+| 2026-07-15 15:55 | /experiment-bridge | outputs/PASTE_ON_SERVER_DEPLOYABLE_HARNESS.txt | implementation | paste-only server installer with backup, tests and GPU gate |
+| 2026-07-15 16:27 | /experiment-bridge | refine-logs/RESCUECREDIT_V2_CODE_REVIEW_20260715_162705.md | implementation | timestamped local-only V2 code review |
+| 2026-07-15 16:27 | /experiment-bridge | refine-logs/RESCUECREDIT_V2_CODE_REVIEW.md | implementation | latest V2 implementation review and remaining GPU gate |
+| 2026-07-15 16:27 | /experiment-bridge | docs/RESCUECREDIT_V2_IMPLEMENTATION_CN.md | implementation | V2 objective, budgets, logs and smoke instructions |
+| 2026-07-15 16:27 | /experiment-bridge | scripts/cloud/run_v2_smoke_2gpu.sh | implementation | two-GPU V2 causal-loss smoke gate |
+| 2026-07-15 16:27 | /experiment-bridge | outputs/rescuecredit_v2_patch.zip | implementation | server-ready V2 source patch bundle |
+| 2026-07-15 16:27 | /experiment-bridge | outputs/PASTE_ON_SERVER_RESCUECREDIT_V2.txt | implementation | paste-only V2 installer with backup, focused tests and dry-run |
+| 2026-07-16 03:59 | /paper-plan | PAPER_PLAN_20260716_035646.md | paper | timestamped AAAI conditional-credit paper plan |
+| 2026-07-16 03:59 | /paper-plan | PAPER_PLAN.md | paper | latest AAAI conditional-credit paper plan |
+# Route-A frozen correction bank (2026-07-16)
+
+- `rescuecredit/frozen_bank.py`: immutable bank schema, hashing, and leakage guards.
+- `scripts/build_appworld_route_a_bank.py`: train-only AppWorld public/private bank builder.
+- `scripts/check_route_a_bank.py`: pre-training integrity gate.
+- `scripts/cloud/run_appworld_route_a_bank.sh`: cloud entrypoint including AppWorld environment setup.
+- `docs/ROUTE_A_FROZEN_BANK_CN.md`: Chinese server run guide.
+- `dist/PASTE_ROUTE_A_BANK_TO_SERVER.sh`: password-free paste bundle generated locally.
+
+## Route-A Shadow credit smoke
+
+- `rescuecredit/appworld_shadow_credit.py`: official-score extraction and causal decision logic.
+- `scripts/appworld_azure_continuation_worker.py`: persistent reference-free Azure continuation worker.
+- `scripts/attach_appworld_shadow_credit.py`: same-state A/B AppWorld branch evaluator.
+- `scripts/check_route_a_shadow_gate.py`: nonzero causal-support gate before training.
+- `scripts/cloud/run_route_a_shadow_smoke.sh`: 20-event cloud smoke entrypoint.
+- `dist/PASTE_ROUTE_A_SHADOW_TO_SERVER.sh`: password-free paste-and-launch bundle.
+
+## Route-A dense official requirement credit
+
+- `scripts/recompute_route_a_dense_credit.py`: reuses saved A/B evaluator reports; no new model calls.
+- `scripts/check_route_a_dense_gate.py`: requires usable positive and negative causal support.
+- `scripts/cloud/run_route_a_dense_recompute.sh`: offline recomputation entrypoint.
+- `dist/PASTE_ROUTE_A_DENSE_TO_SERVER.sh`: password-free install-and-run bundle.
+
+## Route-A same-bank Mask vs RescueCredit-v2 preference pilot
+
+- `rescuecredit/route_a_preference.py`: deterministic split and method-specific preference routing.
+- `scripts/prepare_route_a_preference_data.py`: freezes one shared train/validation partition.
+- `scripts/train_route_a_preference.py`: length-normalized LoRA DPO-style preference learner.
+- `scripts/evaluate_route_a_preference.py`: held-out causal-direction accuracy diagnostic.
+- `scripts/check_route_a_preference_gate.py`: engineering gate before AppWorld task evaluation.
+- `scripts/cloud/run_route_a_seed42_preference_pair.sh`: automatic two-GPU parallel runner.
+- `docs/ROUTE_A_SEED42_PREFERENCE_PILOT_CN.md`: Chinese cloud run and result guide.
+- `dist/PASTE_ROUTE_A_SEED42_TO_SERVER.sh`: password-free paste-and-launch bundle.
+
+## Route-A AppWorld dev paired task-score evaluation
+
+- `rescuecredit/route_a_task_eval.py`: reference-free action validation, summaries, and paired gate.
+- `scripts/build_route_a_appworld_dev_events.py`: freezes unseen dev controlled-state events.
+- `scripts/route_a_adapter_worker.py`: persistent local LoRA adapter inference worker.
+- `scripts/evaluate_route_a_appworld_dev.py`: official AppWorld requirement-score evaluation.
+- `scripts/check_route_a_appworld_dev_gate.py`: pre-registered paired task-score gate.
+- `scripts/cloud/run_route_a_appworld_dev_pair.sh`: GPU sanity plus two-GPU paired dev runner.
+- `docs/ROUTE_A_APPWORLD_DEV_EVAL_CN.md`: Chinese evaluation contract and commands.
+- `dist/PASTE_ROUTE_A_APPWORLD_DEV_TO_SERVER.sh`: password-free paste-and-launch bundle.
+| 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW_20260716_191149.md | implementation | timestamped local-only dev evaluation review |
+| 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW.md | implementation | latest dev evaluation review pointer |
+| 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_TRACKER_20260716_191149.md | implementation | timestamped sanity and full dev run tracker |
+| 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_TRACKER.md | implementation | latest dev evaluation tracker pointer |
+| 2026-07-16 19:13 | /experiment-bridge | dist/PASTE_ROUTE_A_APPWORLD_DEV_TO_SERVER.sh | implementation | paste-only server installer and paired dev launcher |
+| 2026-07-16 19:45 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW_20260716_194520.md | implementation | V2 review after identifying and removing the reference-suffix ceiling |
+| 2026-07-16 19:45 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_TRACKER_20260716_194520.md | implementation | V1 ceiling verdict and V2 pending execution tracker |
+| 2026-07-16 20:34 | /experiment-bridge | refine-logs/ROUTE_A_BOUNDED_PLAN_20260716_203410.md | implementation | preregistered seed-42 AppWorld 4/8-step bounded-horizon protocol |
+| 2026-07-16 20:34 | /experiment-bridge | refine-logs/ROUTE_A_BOUNDED_PLAN.md | implementation | latest bounded-horizon plan pointer |
+| 2026-07-16 20:54 | /experiment-bridge | rescuecredit/route_a_bounded.py | implementation | bounded-horizon summaries, exact protocol constants, and strict gate |
+| 2026-07-16 20:54 | /experiment-bridge | scripts/freeze_route_a_bounded_protocol.py | implementation | pre-outcome event and selection hash lock |
+| 2026-07-16 20:54 | /experiment-bridge | scripts/evaluate_route_a_bounded.py | implementation | cached visible-only H4/H8 A/B evaluator with prefix verification |
+| 2026-07-16 20:54 | /experiment-bridge | scripts/check_route_a_bounded_gate.py | implementation | non-overrideable primary H8 gate entrypoint |
+| 2026-07-16 20:54 | /experiment-bridge | scripts/cloud/run_route_a_appworld_bounded.sh | implementation | remote sanity-first tmux runner |
+| 2026-07-16 20:54 | /experiment-bridge | tests/test_route_a_bounded.py | implementation | bounded metric, cache, prefix, and gate tests |
+| 2026-07-16 20:54 | /experiment-bridge | tests/test_route_a_bounded_contract.py | implementation | static deployment-contract regression tests |
+| 2026-07-16 20:54 | /experiment-bridge | docs/ROUTE_A_APPWORLD_BOUNDED_CN.md | implementation | Chinese server run and return guide |
+| 2026-07-16 20:54 | /experiment-bridge | refine-logs/ROUTE_A_BOUNDED_CODE_REVIEW_20260716_205435.md | implementation | three-round same-family review ending DEPLOY YES |
+| 2026-07-16 20:54 | /experiment-bridge | refine-logs/ROUTE_A_BOUNDED_CODE_REVIEW.md | implementation | latest bounded review pointer |
+| 2026-07-16 20:54 | /experiment-bridge | refine-logs/ROUTE_A_BOUNDED_TRACKER_20260716_203410.md | implementation | remote-run tracker and validation status |
+| 2026-07-16 20:54 | /experiment-bridge | refine-logs/ROUTE_A_BOUNDED_TRACKER.md | implementation | latest bounded tracker pointer |
+| 2026-07-16 20:54 | /experiment-bridge | dist/PASTE_ROUTE_A_BOUNDED_TO_SERVER.sh | implementation | password-free install, test, and launch bundle |

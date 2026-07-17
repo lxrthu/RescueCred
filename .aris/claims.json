@@ -1,0 +1,20 @@
+[
+  {
+    "id": "deployable_harness_precision",
+    "claim": "The reference-free deployable Harness is sufficiently reliable to authorize RescueCredit-v2 training.",
+    "value": 0.6764705882352942,
+    "source": "outputs/remote_appworld_v8_final_holdout_summary.json"
+  },
+  {
+    "id": "deployable_harness_rescue_rate",
+    "claim": "The provenance-aware Harness produces nontrivial single-step rescues on the final holdout.",
+    "value": 0.19658119658119658,
+    "source": "outputs/remote_appworld_v8_final_holdout_summary.json"
+  },
+  {
+    "id": "deployable_harness_harm",
+    "claim": "No clean-case harm was observed in the final 27-task holdout.",
+    "value": 0.0,
+    "source": "outputs/remote_appworld_v8_final_holdout_summary.json"
+  }
+]

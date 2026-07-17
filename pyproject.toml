@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rescuecredit"
+version = "0.1.0"
+description = "Provenance-aware counterfactual credit assignment for corrected tool agents"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "openai>=1.40",
+  "python-dotenv>=1.0",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+appworld = ["appworld==0.1.3.post1", "freezegun==1.5.1"]
+train = [
+  "torch>=2.4",
+  "transformers>=4.45",
+  "accelerate>=1.0",
+  "datasets>=3.0",
+  "peft>=0.13",
+  "trl>=0.12",
+  "deepspeed>=0.15",
+  "wandb>=0.18",
+]
+
+[tool.setuptools.packages.find]
+include = ["rescuecredit*", "environments*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+exclude = [".venv", "data/raw", "dist", "outputs"]

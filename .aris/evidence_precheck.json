@@ -1,0 +1,30 @@
+{
+  "checker": "manual deterministic fallback",
+  "checker_note": "evidence_check.py was unresolved; exact numeric substrings were checked in the transcribed local artifact",
+  "source_provenance": "user-pasted remote JSON, not independently fetched",
+  "results": [
+    {
+      "id": "deployable_harness_precision",
+      "value": 0.6764705882352942,
+      "source": "outputs/remote_appworld_v8_final_holdout_summary.json",
+      "status": "verified"
+    },
+    {
+      "id": "deployable_harness_rescue_rate",
+      "value": 0.19658119658119658,
+      "source": "outputs/remote_appworld_v8_final_holdout_summary.json",
+      "status": "verified"
+    },
+    {
+      "id": "deployable_harness_harm",
+      "value": 0.0,
+      "source": "outputs/remote_appworld_v8_final_holdout_summary.json",
+      "status": "verified"
+    }
+  ],
+  "summary": {
+    "verified": 3,
+    "path_missing": 0,
+    "value_not_found": 0
+  }
+}
