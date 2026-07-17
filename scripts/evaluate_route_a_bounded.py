@@ -404,10 +404,19 @@ def _validate_protocol(
 ) -> tuple[dict[str, Any], str]:
     lock = json.loads(lock_path.read_text(encoding="utf-8"))
     if development_protocol:
+        development_status = lock.get("status")
+        expected_development_statuses = {
+            "frozen_before_both_valid_dev_outcomes",
+            "frozen_before_both_valid_confirmatory_outcomes",
+        }
         checks = {
-            "lock_status": lock.get("status")
-            == "frozen_before_both_valid_dev_outcomes",
-            "seed": seed == EXPECTED_SEED == lock.get("seed"),
+            "lock_status": development_status in expected_development_statuses,
+            "seed": seed == lock.get("seed")
+            and (
+                seed == EXPECTED_SEED
+                if development_status == "frozen_before_both_valid_dev_outcomes"
+                else seed in {43, 44, 45}
+            ),
             "horizons": tuple(horizons)
             == EXPECTED_HORIZONS
             == tuple(lock.get("horizons", [])),
@@ -671,15 +680,34 @@ def main() -> None:
         action="store_true",
         help="Validate a dynamically frozen both-valid dev event set before outcomes.",
     )
+    parser.add_argument(
+        "--development-confirmatory",
+        action="store_true",
+        help=(
+            "Validate seeds 43/44/45 against a frozen both-valid development "
+            "fixture and a confirmatory V3.1 lock."
+        ),
+    )
     args = parser.parse_args()
 
-    if args.confirmatory and args.development_protocol:
-        raise ValueError("confirmatory and development protocols are mutually exclusive")
+    protocol_flags = sum(
+        bool(value)
+        for value in (
+            args.confirmatory,
+            args.development_protocol,
+            args.development_confirmatory,
+        )
+    )
+    if protocol_flags > 1:
+        raise ValueError(
+            "confirmatory and development protocols are mutually exclusive; "
+            "select exactly one protocol mode"
+        )
 
     horizons = sorted(set(args.horizons))
     allowed_seed = (
         args.seed in {43, 44, 45}
-        if args.confirmatory
+        if args.confirmatory or args.development_confirmatory
         else args.seed == EXPECTED_SEED
     )
     if not allowed_seed or tuple(horizons) != EXPECTED_HORIZONS:
@@ -710,7 +738,9 @@ def main() -> None:
         code_identity=code_identity,
         policy_identity=policy_identity,
         runtime_identity=runtime_identity,
-        development_protocol=args.development_protocol,
+        development_protocol=(
+            args.development_protocol or args.development_confirmatory
+        ),
     )
     mask = _selection_map(args.mask_results)
     v2 = _selection_map(args.v2_results)
@@ -888,6 +918,7 @@ def main() -> None:
             "stage": f"route_a_appworld_bounded_horizon_seed{args.seed}",
             "confirmatory": args.confirmatory,
             "development_protocol": args.development_protocol,
+            "development_confirmatory": args.development_confirmatory,
             "requested_horizons": horizons,
             "run_tag": run_tag,
             "sanity_limit": args.limit,

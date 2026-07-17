@@ -191,7 +191,7 @@
 1. 先构建并冻结 verified correction bank；记录 hash、来源、validity、执行回执。
 2. seed 42 跑 Mask+Correction 与 RescueCredit-v2；参数完全一致。
 3. 若 V2 未改善 S_off 或 First-pass：停止，不能写方法优越性论文。
-4. 若 gate 通过：冻结超参，跑 seeds 45/46/47。
+4. 若 gate 通过：冻结超参与 both-valid AppWorld 事件集，跑 seeds 43/44/45。
 5. 主结果稳定后才进入 ablation；`test_normal` / `test_challenge` 最终只开一次。
 
 ## 当前写作状态
@@ -206,8 +206,8 @@
 |---|---:|---|
 | 逻辑流 | 8/10 | 核心压缩为 verified B + sparse counterfactual A → B/A preference 的方向与权重。 |
 | Claim–evidence 对齐 | 8/10 | 分离未裁剪无偏性与 clipping bias；禁止主结果前写 outperform。 |
-| 实验完整性 | 3/10 | 明确 correction bank、seed 42、45/46/47、Full Shadow 与 paired uncertainty 为投稿最低要求。 |
+| 实验完整性 | 3/10 | 明确 correction bank、seed 42、43/44/45、Full Shadow 与 paired uncertainty 为投稿最低要求。 |
 | Positioning | 7/10 | 自动 Harness 降为限制/附录；主文突出 Mask 无法恢复的 counterfactual 信息。 |
 | 7 页可行性 | 4/10 | 主文只留 Fig.1、Table 1、一个 cost–performance 图、一个 compact algorithm 和一个 focused ablation。 |
 
-**Reviewer verdict**：当前 AAAI No-Go（高置信度）。只有 frozen correction bank 后，V2 在公平 seed-42 pilot 优于 Mask，并在 seeds 45/46/47 保持方向一致且 paired uncertainty 不与“无改进”相容，才转为 Go。
+**Reviewer verdict**：当前 AAAI No-Go（高置信度）。只有 frozen correction bank 后，V3.1 在公平 seed-42 pilot 优于 Mask，并在 seeds 43/44/45 保持方向一致且 paired uncertainty 不与“无改进”相容，才转为 Go。
