@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 import argparse
+import importlib.metadata
 import json
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Any
 
-from rescuecredit.frozen_bank import file_sha256, read_jsonl, write_jsonl
+from rescuecredit.frozen_bank import directory_sha256, file_sha256, read_jsonl, write_jsonl
 from rescuecredit.logging import write_json
 from rescuecredit.route_a_task_eval import event_set_hash
 
@@ -69,7 +71,7 @@ class AdapterScorer:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--method", choices=["mask", "v3"], required=True)
+    parser.add_argument("--method", choices=["mask", "v3", "v31"], required=True)
     parser.add_argument("--event-file", type=Path, required=True)
     parser.add_argument("--worker-python", type=Path, required=True)
     parser.add_argument("--scorer-script", type=Path, required=True)
@@ -133,7 +135,16 @@ def main() -> None:
         "selected_b": sum(row["selected"] == "b" for row in rows),
         "scoring_failures": sum(row["scoring_failed"] for row in rows),
         "model": str(args.model),
+        "base_model_sha256": directory_sha256(args.model),
         "adapter": str(args.adapter),
+        "adapter_sha256": directory_sha256(args.adapter),
+        "scorer_script_sha256": file_sha256(args.scorer_script),
+        "runtime_identity": {
+            "python": sys.version,
+            "torch": importlib.metadata.version("torch"),
+            "transformers": importlib.metadata.version("transformers"),
+            "peft": importlib.metadata.version("peft"),
+        },
         "reference_free_model_inputs": True,
         "test_split_access": False,
         "wall_time_sec": time.time() - started,

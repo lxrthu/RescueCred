@@ -88,6 +88,19 @@ def _hash_task(task_id: str) -> str:
     return hashlib.sha256(task_id.encode()).hexdigest()
 
 
+def _unsupported_openapi_schema_keywords(value: Any) -> set[str]:
+    found: set[str] = set()
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if key in {"$ref", "anyOf", "oneOf", "allOf", "not"}:
+                found.add(key)
+            found.update(_unsupported_openapi_schema_keywords(item))
+    elif isinstance(value, list):
+        for item in value:
+            found.update(_unsupported_openapi_schema_keywords(item))
+    return found
+
+
 class OpenAPISchemaIndex:
     def __init__(self, directory: Path) -> None:
         self.routes: list[tuple[str, str, re.Pattern[str], dict[str, Any]]] = []
@@ -114,6 +127,7 @@ class OpenAPISchemaIndex:
                     ]
                     parameter_descriptions: dict[str, str] = {}
                     parameter_schemas: dict[str, Any] = {}
+                    unsupported_schema_keywords: set[str] = set()
                     for item in parameters:
                         if not isinstance(item, dict) or not item.get("name"):
                             continue
@@ -122,6 +136,9 @@ class OpenAPISchemaIndex:
                             parameter_descriptions[name] = str(item["description"])
                         if isinstance(item.get("schema"), dict):
                             parameter_schemas[name] = copy.deepcopy(item["schema"])
+                            unsupported_schema_keywords.update(
+                                _unsupported_openapi_schema_keywords(item["schema"])
+                            )
                     request_body = operation.get("requestBody", {})
                     if isinstance(request_body, dict):
                         content = request_body.get("content", {})
@@ -129,6 +146,9 @@ class OpenAPISchemaIndex:
                             for media in content.values():
                                 schema = media.get("schema", {}) if isinstance(media, dict) else {}
                                 if isinstance(schema, dict):
+                                    unsupported_schema_keywords.update(
+                                        _unsupported_openapi_schema_keywords(schema)
+                                    )
                                     required.extend(map(str, schema.get("required", [])))
                                     properties = schema.get("properties", {})
                                     if isinstance(properties, dict):
@@ -152,6 +172,9 @@ class OpenAPISchemaIndex:
                         "tool_description": str(operation.get("description", "")),
                         "parameter_descriptions": parameter_descriptions,
                         "parameter_schemas": parameter_schemas,
+                        "unsupported_schema_keywords": sorted(
+                            unsupported_schema_keywords
+                        ),
                     }
                     self.routes.append((app, method, pattern, public_schema))
 

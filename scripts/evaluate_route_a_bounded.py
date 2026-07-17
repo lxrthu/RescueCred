@@ -23,7 +23,13 @@ from rescuecredit.appworld_shadow_credit import (
     render_compatible_action,
     requirement_progress,
 )
-from rescuecredit.frozen_bank import digest, file_sha256, read_jsonl, write_jsonl
+from rescuecredit.frozen_bank import (
+    digest,
+    directory_sha256,
+    file_sha256,
+    read_jsonl,
+    write_jsonl,
+)
 from rescuecredit.logging import JsonlLogger, write_json
 from rescuecredit.route_a_bounded import (
     CONFIRMATORY_CODE_PATHS,
@@ -168,7 +174,10 @@ def _runtime_identity(
         task_index = int(event["task_index"])
         world = AppWorld(
             task_id=str(event["task_id"]),
-            experiment_name=f"route_a_bounded_identity_{run_tag}_{task_index}",
+            experiment_name=(
+                f"route_a_bounded_identity_{run_tag}_"
+                f"{str(event['event_id'])[:12]}_{task_index}"
+            ),
             ground_truth_mode="full",
             raise_on_failure=False,
             random_seed=seed + task_index,
@@ -391,9 +400,44 @@ def _validate_protocol(
     code_identity: dict[str, Any] | None = None,
     policy_identity: dict[str, Any] | None = None,
     runtime_identity: dict[str, Any] | None = None,
+    development_protocol: bool = False,
 ) -> tuple[dict[str, Any], str]:
     lock = json.loads(lock_path.read_text(encoding="utf-8"))
-    checks = {
+    if development_protocol:
+        checks = {
+            "lock_status": lock.get("status")
+            == "frozen_before_both_valid_dev_outcomes",
+            "seed": seed == EXPECTED_SEED == lock.get("seed"),
+            "horizons": tuple(horizons)
+            == EXPECTED_HORIZONS
+            == tuple(lock.get("horizons", [])),
+            "event_count": len(events) == int(lock.get("events", -1)),
+            "unique_event_ids": len({row["event_id"] for row in events})
+            == len(events),
+            "event_set_hash": event_set_hash(events)
+            == lock.get("event_set_hash"),
+            "event_file_sha256": file_sha256(event_file)
+            == lock.get("event_file_sha256"),
+            "mask_results_sha256": file_sha256(mask_results)
+            == lock.get("mask_results_sha256"),
+            "v2_results_sha256": file_sha256(v2_results)
+            == lock.get("v31_results_sha256"),
+            "method_binding": lock.get("method_a") == "mask"
+            and lock.get("method_b") == "v31",
+            "source_identity": bool(lock.get("source_sha256"))
+            and all(
+                Path(path).is_file()
+                and file_sha256(Path(path)) == expected
+                for path, expected in lock.get("source_sha256", {}).items()
+            ),
+            "public_schema_corpus_identity": directory_sha256(
+                Path("data/api_docs/openapi")
+            )
+            == lock.get("public_openapi_schema_corpus_sha256"),
+            "all_event_checks": all(lock.get("checks", {}).values()),
+        }
+    else:
+        checks = {
         "lock_status": lock.get("status")
         == (
             "frozen_before_confirmatory_outcomes"
@@ -420,7 +464,7 @@ def _validate_protocol(
         "v2_results_sha256": file_sha256(v2_results)
         == lock.get("v2_results_sha256"),
         "all_event_checks": all(lock.get("checks", {}).values()),
-    }
+        }
     if confirmatory:
         checks.update(
             {
@@ -462,7 +506,8 @@ def _run_branch(
     task_id = str(event["task_id"])
     task_index = int(event["task_index"])
     experiment_name = (
-        f"route_a_bounded_{run_tag}_{branch}_h{eval_horizon}_{seed}_{task_index}"
+        f"route_a_bounded_{run_tag}_{str(event['event_id'])[:12]}_"
+        f"{branch}_h{eval_horizon}_{seed}_{task_index}"
     )
     world = AppWorld(
         task_id=task_id,
@@ -477,6 +522,7 @@ def _run_branch(
         "steps": 0,
         "failure_reason": None,
         "action_execution_failed": False,
+        "continuation_execution_failures": 0,
         "worker_errors": [],
         "termination": None,
         "trace": [],
@@ -518,7 +564,7 @@ def _run_branch(
         while steps < eval_horizon and not world.task_completed():
             payload = {
                 "instruction": str(world.task.instruction),
-                "event_context": event["prompt"],
+                "event_context": event.get("continuation_context", event["prompt"]),
                 "tool_schemas": _tool_schemas(world, active_apps),
                 "history": history[-8:],
                 "remaining_steps": policy_horizon - steps,
@@ -561,6 +607,8 @@ def _run_branch(
                     termination="invalid_policy_action",
                 )
                 return result
+            if _execution_failed(output):
+                result["continuation_execution_failures"] += 1
             history.append({"action": next_action, "output": _bounded(output)})
             steps += 1
             result["trace"].append(
@@ -618,7 +666,15 @@ def main() -> None:
         action="store_true",
         help="Authorize only preregistered follow-up seeds 43/44/45 with a confirmatory lock.",
     )
+    parser.add_argument(
+        "--development-protocol",
+        action="store_true",
+        help="Validate a dynamically frozen both-valid dev event set before outcomes.",
+    )
     args = parser.parse_args()
+
+    if args.confirmatory and args.development_protocol:
+        raise ValueError("confirmatory and development protocols are mutually exclusive")
 
     horizons = sorted(set(args.horizons))
     allowed_seed = (
@@ -654,6 +710,7 @@ def main() -> None:
         code_identity=code_identity,
         policy_identity=policy_identity,
         runtime_identity=runtime_identity,
+        development_protocol=args.development_protocol,
     )
     mask = _selection_map(args.mask_results)
     v2 = _selection_map(args.v2_results)
@@ -747,6 +804,10 @@ def main() -> None:
                     "termination_b": b["termination"],
                     "action_a_execution_failed": a["action_execution_failed"],
                     "action_b_execution_failed": b["action_execution_failed"],
+                    "continuation_execution_failures": int(
+                        a["continuation_execution_failures"]
+                    )
+                    + int(b["continuation_execution_failures"]),
                     "branch_a_failure_reason": a["failure_reason"],
                     "branch_b_failure_reason": b["failure_reason"],
                 }
@@ -826,6 +887,7 @@ def main() -> None:
             "seed": args.seed,
             "stage": f"route_a_appworld_bounded_horizon_seed{args.seed}",
             "confirmatory": args.confirmatory,
+            "development_protocol": args.development_protocol,
             "requested_horizons": horizons,
             "run_tag": run_tag,
             "sanity_limit": args.limit,

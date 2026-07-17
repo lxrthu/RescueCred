@@ -90,6 +90,19 @@ def summarize_horizon(rows: list[dict[str, Any]], horizon: int) -> dict[str, Any
     v2_accuracy = sum(correct(row, "v2") for row in causal) / max(1, len(causal))
     rescue = sum(scores(row)[1] - scores(row)[0] > TOLERANCE for row in valid)
     reverse = sum(scores(row)[1] - scores(row)[0] < -TOLERANCE for row in valid)
+    initial_execution_failures = sum(
+        bool(row.get("horizons", {}).get(key, {}).get(field))
+        for row in rows
+        for field in ("action_a_execution_failed", "action_b_execution_failed")
+    )
+    continuation_execution_failures = sum(
+        int(
+            row.get("horizons", {})
+            .get(key, {})
+            .get("continuation_execution_failures", 0)
+        )
+        for row in rows
+    )
     return {
         "horizon": int(horizon),
         "valid_paired_events": len(valid),
@@ -98,6 +111,8 @@ def summarize_horizon(rows: list[dict[str, Any]], horizon: int) -> dict[str, Any
         "rescue_preference_events": rescue,
         "reverse_preference_events": reverse,
         "zero_delta_events": len(valid) - rescue - reverse,
+        "initial_action_execution_failures": initial_execution_failures,
+        "continuation_action_execution_failures": continuation_execution_failures,
         "mask_mean_official_score": mask_mean,
         "v2_mean_official_score": v2_mean,
         "score_improvement": v2_mean - mask_mean,
