@@ -9,6 +9,7 @@ import os
 import subprocess
 import tempfile
 import time
+from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional
 
@@ -273,6 +274,15 @@ def main() -> None:
     parser.add_argument("--worker-model")
     parser.add_argument("--worker-device")
     parser.add_argument("--worker-timeout-sec", type=float, default=180.0)
+    parser.add_argument(
+        "--event-search-steps",
+        type=int,
+        default=8,
+        help=(
+            "Maximum reference-free common-prefix actions to inspect for the first "
+            "controlled or natural treatment point."
+        ),
+    )
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
 
@@ -289,6 +299,7 @@ def main() -> None:
     rows: List[Dict[str, Any]] = []
     worker_failures = 0
     snapshot_restore_exact = False
+    proposal_stats: Counter[str] = Counter()
     worker = Worker(
         worker_python,
         worker_script,
@@ -300,107 +311,140 @@ def main() -> None:
     try:
         for index, (scenario_name, scenario) in enumerate(selected, start=1):
             prefix = runtime.prepare(scenario)
-            schemas = runtime.tool_schemas(prefix)
-            try:
-                proposal_response = worker.request(
-                    _worker_payload(runtime, prefix, "propose", args.horizon)
-                )
-            except Exception as error:
-                worker_failures += 1
-                print(
-                    json.dumps(
-                        {
-                            "progress": f"{index}/{len(selected)}",
-                            "proposal": "worker_failure",
-                            "error": type(error).__name__,
-                        }
-                    ),
-                    flush=True,
-                )
-                continue
-            proposal = _action_or_none(proposal_response)
-            if proposal is None:
-                worker_failures += int(not proposal_response.get("stopped", False))
-                print(
-                    json.dumps(
-                        {"progress": f"{index}/{len(selected)}", "proposal": "none"}
-                    ),
-                    flush=True,
-                )
-                continue
+            task_hash = hashlib.sha256(scenario_name.encode("utf-8")).hexdigest()
+            treatment_found = False
+            search_steps = min(args.horizon, max(1, args.event_search_steps))
+            examined = 0
+            for prefix_step in range(search_steps):
+                examined += 1
+                schemas = runtime.tool_schemas(prefix)
+                proposal_stats["proposal_requests"] += 1
+                try:
+                    proposal_response = worker.request(
+                        _worker_payload(runtime, prefix, "propose", args.horizon)
+                    )
+                except Exception as error:
+                    worker_failures += 1
+                    proposal_stats["proposal_worker_failures"] += 1
+                    print(
+                        json.dumps(
+                            {
+                                "progress": f"{index}/{len(selected)}",
+                                "proposal": "worker_failure",
+                                "prefix_step": prefix_step,
+                                "error": type(error).__name__,
+                            }
+                        ),
+                        flush=True,
+                    )
+                    break
+                proposal = _action_or_none(proposal_response)
+                if proposal is None:
+                    stopped = proposal_response.get("stopped", False) is True
+                    proposal_stats[
+                        "proposal_stops" if stopped else "proposal_invalid"
+                    ] += 1
+                    worker_failures += int(not stopped)
+                    break
+                proposal_stats["proposal_actions"] += 1
 
-            if not snapshot_restore_exact:
+                # Execute once on an isolated snapshot. This both verifies exact
+                # restore semantics and supplies the visible receipt for the
+                # natural Harness track. No reference continuation is involved.
                 before = runtime.context_digest(prefix)
                 restored = runtime.snapshot(prefix)
-                mutation = runtime.execute(runtime.snapshot(prefix), proposal).context
-                snapshot_restore_exact = (
-                    before == runtime.context_digest(restored)
-                    and before != runtime.context_digest(mutation)
-                )
-
-            task_hash = hashlib.sha256(scenario_name.encode("utf-8")).hexdigest()
-            controlled = controlled_missing_argument(proposal, schemas)
-            if controlled is not None:
-                action_a, removed = controlled
-                branch_a = _run_branch(
-                    runtime, scenario, prefix, action_a, worker, args.horizon
-                )
-                branch_b = _run_branch(
-                    runtime, scenario, prefix, proposal, worker, args.horizon
-                )
-                rows.append(
-                    _paired_row(
-                        "controlled_missing_argument",
-                        scenario_name,
-                        task_hash,
-                        action_a,
-                        proposal,
-                        branch_a,
-                        branch_b,
-                        {"removed_public_required_field": removed},
+                natural_probe = runtime.execute(runtime.snapshot(prefix), proposal)
+                if not snapshot_restore_exact:
+                    snapshot_restore_exact = (
+                        before == runtime.context_digest(restored)
+                        and before != runtime.context_digest(natural_probe.context)
                     )
-                )
 
-            # Natural Harness audit: correction B is requested only when proposal A
-            # actually emits a visible execution error in an isolated branch.
-            natural_probe = runtime.execute(runtime.snapshot(prefix), proposal)
-            if natural_probe.exception:
-                try:
-                    repair_response = worker.request(
-                        _worker_payload(
-                            runtime,
-                            prefix,
-                            "repair",
-                            args.horizon,
-                            proposal_a=proposal,
-                            visible_receipt=natural_probe.content,
-                        )
-                    )
-                except Exception:
-                    worker_failures += 1
-                    continue
-                repair = _action_or_none(repair_response)
-                if repair is not None and repair != proposal:
+                controlled = controlled_missing_argument(proposal, schemas)
+                if controlled is not None:
+                    proposal_stats["controlled_eligible"] += 1
+                    action_a, removed = controlled
                     branch_a = _run_branch(
-                        runtime, scenario, prefix, proposal, worker, args.horizon
+                        runtime, scenario, prefix, action_a, worker, args.horizon
                     )
                     branch_b = _run_branch(
-                        runtime, scenario, prefix, repair, worker, args.horizon
+                        runtime, scenario, prefix, proposal, worker, args.horizon
                     )
                     rows.append(
                         _paired_row(
-                            "natural_visible_error_repair",
+                            "controlled_missing_argument",
                             scenario_name,
                             task_hash,
+                            action_a,
                             proposal,
-                            repair,
                             branch_a,
                             branch_b,
-                            {"visible_error": natural_probe.content},
+                            {
+                                "removed_public_required_field": removed,
+                                "reference_free_prefix_steps": prefix_step,
+                            },
                         )
                     )
-                elif repair_response.get("error_type"):
-                    worker_failures += 1
+                    treatment_found = True
+                else:
+                    proposal_stats["controlled_ineligible"] += 1
+
+                # Natural Harness audit: request B only after A emits a visible
+                # execution error. The prefix and receipt are policy-visible.
+                if natural_probe.exception:
+                    proposal_stats["visible_execution_errors"] += 1
+                    try:
+                        repair_response = worker.request(
+                            _worker_payload(
+                                runtime,
+                                prefix,
+                                "repair",
+                                args.horizon,
+                                proposal_a=proposal,
+                                visible_receipt=natural_probe.content,
+                            )
+                        )
+                    except Exception:
+                        worker_failures += 1
+                        proposal_stats["repair_worker_failures"] += 1
+                        break
+                    repair = _action_or_none(repair_response)
+                    if repair is not None and repair != proposal:
+                        proposal_stats["natural_repairs"] += 1
+                        branch_a = _run_branch(
+                            runtime, scenario, prefix, proposal, worker, args.horizon
+                        )
+                        branch_b = _run_branch(
+                            runtime, scenario, prefix, repair, worker, args.horizon
+                        )
+                        rows.append(
+                            _paired_row(
+                                "natural_visible_error_repair",
+                                scenario_name,
+                                task_hash,
+                                proposal,
+                                repair,
+                                branch_a,
+                                branch_b,
+                                {
+                                    "visible_error": natural_probe.content,
+                                    "reference_free_prefix_steps": prefix_step,
+                                },
+                            )
+                        )
+                        treatment_found = True
+                    elif repair_response.get("error_type"):
+                        worker_failures += 1
+                        proposal_stats["repair_invalid"] += 1
+                    else:
+                        proposal_stats["repair_abstentions"] += 1
+
+                if treatment_found:
+                    break
+                prefix = natural_probe.context
+                proposal_stats["reference_free_prefix_advances"] += 1
+            if not treatment_found:
+                proposal_stats["scenarios_without_treatment"] += 1
 
             nonzero = sum(
                 row.get("replay_valid") and row.get("decision") != "zero_delta"
@@ -412,6 +456,8 @@ def main() -> None:
                         "progress": f"{index}/{len(selected)}",
                         "events": len(rows),
                         "nonzero": nonzero,
+                        "prefix_actions_examined": examined,
+                        "treatment_found": treatment_found,
                     }
                 ),
                 flush=True,
@@ -452,6 +498,13 @@ def main() -> None:
             "toolsandbox_commit": TOOL_SANDBOX_COMMIT,
             "worker_python": str(worker_python),
             "worker_script_sha256": _sha256(worker_script),
+            "event_search": {
+                "maximum_reference_free_prefix_steps": min(
+                    args.horizon, max(1, args.event_search_steps)
+                ),
+                "statistics": dict(sorted(proposal_stats.items())),
+                "reference_actions_used": False,
+            },
             "worker_llm": {
                 "provider": os.getenv("TOOLSANDBOX_LLM_PROVIDER", "azure"),
                 "model": (

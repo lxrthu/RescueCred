@@ -78,12 +78,16 @@ def build_summary_and_gate(
                 "visible tool receipts",
                 "proposal A",
             ],
+            "treatment_search_prefix": (
+                "reference-free worker actions and visible receipts only"
+            ),
             "milestones_and_minefields": "offline branch scoring only",
             "reference_actions": "never read or exported",
         },
         "controlled_scope": (
             "mechanism diagnostic: A removes one public-schema required argument "
-            "from a reference-free model proposal B"
+            "from the first eligible reference-free model proposal B along a "
+            "common visible prefix"
         ),
         "natural_scope": (
             "deployable diagnostic: B is generated only after A yields a visible error"

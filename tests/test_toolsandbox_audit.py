@@ -151,6 +151,7 @@ def test_signal_gate_passes_dense_controlled_and_natural_audit():
     assert gate["passed"] is True
     assert summary["controlled"]["nonzero_rate"] == 0.4
     assert summary["reference_boundary"]["reference_actions"] == "never read or exported"
+    assert "reference-free" in summary["reference_boundary"]["treatment_search_prefix"]
 
 
 def test_signal_gate_rejects_sparse_or_reference_invalid_run():
