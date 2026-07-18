@@ -4,6 +4,7 @@ import copy
 import hashlib
 import json
 import math
+import types
 from dataclasses import dataclass
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
@@ -31,6 +32,58 @@ def canonical_json(value: Any) -> str:
 
 def sha256_json(value: Any) -> str:
     return hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def _console_value_descriptor(value: Any) -> Any:
+    """Return a deterministic descriptor for InteractiveConsole locals.
+
+    Raw dill byte streams are reversible but not canonical: serializing two
+    equivalent consoles can produce different bytes because memo/object identities
+    differ. ToolSandbox's console contains imported modules/functions plus temporary
+    JSON-like action values, so compare their executable names and stable values.
+    """
+
+    if isinstance(value, types.ModuleType):
+        return {"kind": "module", "name": value.__name__}
+    if callable(value):
+        return {
+            "kind": "callable",
+            "module": getattr(value, "__module__", ""),
+            "qualname": getattr(value, "__qualname__", getattr(value, "__name__", "")),
+        }
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return {"kind": "value", "value": value}
+    if isinstance(value, (list, tuple)):
+        return {
+            "kind": type(value).__name__,
+            "items": [_console_value_descriptor(child) for child in value],
+        }
+    if isinstance(value, dict):
+        return {
+            "kind": "dict",
+            "items": {
+                str(key): _console_value_descriptor(child)
+                for key, child in sorted(value.items(), key=lambda item: str(item[0]))
+            },
+        }
+    return {
+        "kind": "object",
+        "type": type(value).__module__ + "." + type(value).__qualname__,
+    }
+
+
+def console_namespace_fingerprint(console: Any) -> Dict[str, Any]:
+    namespace = getattr(console, "locals", None)
+    if not isinstance(namespace, dict):
+        raise TypeError("ToolSandbox InteractiveConsole.locals must be a dictionary")
+    return {
+        str(name): (
+            {"kind": "python_builtins"}
+            if str(name) == "__builtins__"
+            else _console_value_descriptor(value)
+        )
+        for name, value in sorted(namespace.items(), key=lambda item: str(item[0]))
+    }
 
 
 def canonical_action(action: Mapping[str, Any]) -> Dict[str, Any]:
@@ -212,14 +265,11 @@ class ToolSandboxRuntime:
         }
 
     def context_digest(self, context: Any) -> str:
-        payload = context.to_dict(serialize_console=True)
-        console = payload.pop("interactive_console")
-        if not isinstance(console, bytes):
-            raise TypeError("serialized ToolSandbox console must be bytes")
-        digest = hashlib.sha256(canonical_json(payload).encode("utf-8"))
-        digest.update(b"\0interactive_console\0")
-        digest.update(console)
-        return digest.hexdigest()
+        payload = context.to_dict(serialize_console=False)
+        payload["interactive_console_namespace"] = console_namespace_fingerprint(
+            context.interactive_console
+        )
+        return sha256_json(payload)
 
     def snapshot(self, context: Any) -> Any:
         return copy.deepcopy(context)

@@ -10,7 +10,7 @@ The fresh review compared the implementation with pinned Apple ToolSandbox commi
 1. The original all-state-dependency selector could not reach 30 scenarios. The final selector deterministically prioritizes eligible state-dependency scenarios, then fills from the same single-user/multiple-tool/no-distraction contract. Static review found exactly 40 eligible non-RapidAPI scenarios.
 2. Raw context tools exposed USER-only `end_conversation`. The adapter now applies the official `visible_to` AGENT filter for selection, schemas, and execution.
 3. Natural coverage now counts replay-valid pairs only; continuation failures enter worker reliability accounting; official evaluator use is derived from branch provenance.
-4. Snapshot integrity now hashes serialized InteractiveConsole bytes as well as databases and control fields.
+4. Snapshot integrity hashes databases/control fields plus a deterministic executable namespace fingerprint. Raw dill bytes are intentionally excluded because dill serialization is reversible but not canonical across equivalent console copies.
 5. Worker reads have a configurable 180-second watchdog and terminate a stalled subprocess.
 
 ## Verified boundaries

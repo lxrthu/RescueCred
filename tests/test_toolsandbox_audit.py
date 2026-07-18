@@ -1,8 +1,10 @@
 import json
+import types
 
 from environments.toolsandbox.adapter import (
     action_schema_complete,
     canonical_action,
+    console_namespace_fingerprint,
     controlled_missing_argument,
     score_decision,
 )
@@ -59,6 +61,21 @@ def test_action_is_canonical_and_decision_is_three_way():
     assert score_decision(1.0) == "rescue_preference"
     assert score_decision(-1.0) == "reverse_preference"
     assert score_decision(1e-14) == "zero_delta"
+
+
+def test_console_fingerprint_is_semantic_not_object_identity_based():
+    def tool(value):
+        return value
+
+    left = types.SimpleNamespace(
+        locals={"json": json, "tool": tool, "payload": {"x": [1, "a"]}}
+    )
+    right = types.SimpleNamespace(
+        locals={"payload": {"x": [1, "a"]}, "tool": tool, "json": json}
+    )
+    assert console_namespace_fingerprint(left) == console_namespace_fingerprint(right)
+    right.locals["payload"]["x"].append(2)
+    assert console_namespace_fingerprint(left) != console_namespace_fingerprint(right)
 
 
 def test_worker_validation_rejects_unknown_tools_and_allows_repair_abstention():
