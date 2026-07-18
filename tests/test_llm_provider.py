@@ -48,7 +48,8 @@ def test_deepseek_provider_uses_openai_base_url_and_nonthinking(monkeypatch):
     }
 
 
-def test_deepseek_provider_requires_key(monkeypatch):
+def test_deepseek_provider_requires_key(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     with pytest.raises(RuntimeError, match="DEEPSEEK_API_KEY"):
         AzureOpenAIAdapter(provider="deepseek")

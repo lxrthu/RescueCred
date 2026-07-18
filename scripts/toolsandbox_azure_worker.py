@@ -6,10 +6,18 @@ import json
 import os
 import sys
 import time
+from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Tuple
 
-from rescuecredit.appworld_shadow_credit import json_object
-from rescuecredit.azure_client import AzureOpenAIAdapter
+# The audit intentionally launches this worker from an isolated temporary cwd
+# with a strict environment allowlist.  Resolve project code from the worker's
+# own immutable location instead of inheriting PYTHONPATH from the parent.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from rescuecredit.appworld_shadow_credit import json_object  # noqa: E402
+from rescuecredit.azure_client import AzureOpenAIAdapter  # noqa: E402
 
 
 def _decode(text: str) -> Optional[Dict[str, Any]]:

@@ -1,5 +1,9 @@
 import json
+import os
+import subprocess
+import sys
 import types
+from pathlib import Path
 
 from environments.toolsandbox.adapter import (
     action_schema_complete,
@@ -29,6 +33,27 @@ SCHEMAS = [
         },
     }
 ]
+
+
+def test_worker_imports_project_code_from_isolated_cwd(tmp_path: Path):
+    root = Path(__file__).resolve().parents[1]
+    script = root / "scripts" / "toolsandbox_azure_worker.py"
+    environment = {
+        key: value
+        for key, value in os.environ.items()
+        if key not in {"PYTHONPATH", "PYTHONHOME"}
+    }
+    result = subprocess.run(
+        [sys.executable, str(script), "--help"],
+        cwd=tmp_path,
+        env=environment,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "--model" in result.stdout
 
 
 def test_controlled_corruption_uses_only_public_required_field():
