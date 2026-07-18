@@ -113,3 +113,5 @@
 | 2026-07-18 23:55 | /experiment-bridge | refine-logs/TOOLSANDBOX_V4_POOL_ERRATUM_20260718.md | preflight repair | documents the pre-outcome tiered scenario-pool correction |
 | 2026-07-18 23:58 | /experiment-bridge | refine-logs/TOOLSANDBOX_V4_POOL_CODE_REVIEW_20260718.md | review | timestamped local-only pre-deploy review of the pool repair |
 | 2026-07-18 23:58 | /experiment-bridge | refine-logs/TOOLSANDBOX_V4_POOL_CODE_REVIEW.md | review | latest ToolSandbox V4 pool-repair review pointer |
+| 2026-07-19 00:20 | /monitor-experiment | refine-logs/TOOLSANDBOX_V4_WORKER_TIMEOUT_ERRATUM_20260718.md | sanity repair | documents the pre-holdout timeout cascade and frozen correction |
+| 2026-07-19 00:20 | /monitor-experiment | refine-logs/TOOLSANDBOX_V4_WORKER_CODE_REVIEW_20260718.md | review | local-only pre-deploy review of worker restart and timeout binding |

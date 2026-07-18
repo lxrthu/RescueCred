@@ -46,6 +46,7 @@ def test_v4_protocol_lock_binds_config_and_sources(tmp_path, monkeypatch):
         "limit": 40,
         "horizon": 8,
         "event_search_steps": 8,
+        "worker_timeout_sec": 600.0,
         "credit_mode": "lexicographic_v4",
         "scenario_pool_profile": V4_SCENARIO_POOL_PROFILE,
         "provider": "deepseek",
@@ -77,6 +78,7 @@ def test_v4_protocol_lock_binds_config_and_sources(tmp_path, monkeypatch):
         limit=40,
         horizon=8,
         event_search_steps=8,
+        worker_timeout_sec=600.0,
         credit_mode="lexicographic_v4",
     )
     monkeypatch.setenv("TOOLSANDBOX_LLM_PROVIDER", "deepseek")
@@ -91,6 +93,12 @@ def test_v4_protocol_lock_binds_config_and_sources(tmp_path, monkeypatch):
     lock_sha, validated = _validate_protocol_lock(path, args, worker)
     assert lock_sha == _sha(path)
     assert validated["source_sha256"] == lock["source_sha256"]
+
+    lock["worker_timeout_sec"] = 601.0
+    path.write_text(json.dumps(lock), encoding="utf-8")
+    with pytest.raises(ValueError, match="worker_timeout_sec"):
+        _validate_protocol_lock(path, args, worker)
+    lock["worker_timeout_sec"] = 600.0
 
     del lock["source_sha256"]["rescuecredit/azure_client.py"]
     path.write_text(json.dumps(lock), encoding="utf-8")
@@ -124,6 +132,7 @@ def test_v4_protocol_rejects_scenario_pool_profile_drift(
         "limit": 40,
         "horizon": 8,
         "event_search_steps": 8,
+        "worker_timeout_sec": 600.0,
         "credit_mode": "lexicographic_v4",
         "scenario_pool_profile": "wrong_profile",
         "provider": "deepseek",
@@ -155,6 +164,7 @@ def test_v4_protocol_rejects_scenario_pool_profile_drift(
         limit=40,
         horizon=8,
         event_search_steps=8,
+        worker_timeout_sec=600.0,
         credit_mode="lexicographic_v4",
     )
     monkeypatch.setenv("TOOLSANDBOX_LLM_PROVIDER", "deepseek")

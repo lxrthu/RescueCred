@@ -73,6 +73,7 @@ def protocol_payload(args: argparse.Namespace, root: Path) -> dict[str, Any]:
         "limit": args.limit,
         "horizon": args.horizon,
         "event_search_steps": args.event_search_steps,
+        "worker_timeout_sec": args.worker_timeout_sec,
         "credit_mode": "lexicographic_v4",
         "scenario_pool_profile": V4_SCENARIO_POOL_PROFILE,
         "lexicographic_component_order": list(LEXICOGRAPHIC_COMPONENT_ORDER),
@@ -122,6 +123,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--limit", type=int, default=40)
     parser.add_argument("--horizon", type=int, default=8)
     parser.add_argument("--event-search-steps", type=int, default=8)
+    parser.add_argument("--worker-timeout-sec", type=float, default=600.0)
     return parser.parse_args()
 
 

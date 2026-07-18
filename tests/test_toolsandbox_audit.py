@@ -16,7 +16,11 @@ from environments.toolsandbox.adapter import (
     score_decision,
 )
 from rescuecredit.toolsandbox_audit import build_summary_and_gate
-from scripts.audit_toolsandbox_signal import _official_score_readonly, _snapshot_audit_exact
+from scripts.audit_toolsandbox_signal import (
+    Worker,
+    _official_score_readonly,
+    _snapshot_audit_exact,
+)
 from scripts.toolsandbox_azure_worker import _validate
 
 
@@ -129,6 +133,36 @@ def test_worker_imports_project_code_from_isolated_cwd(tmp_path: Path):
     )
     assert result.returncode == 0, result.stderr
     assert "--model" in result.stdout
+
+
+def test_worker_restarts_after_timeout_without_cascading_failure(tmp_path: Path):
+    marker = tmp_path / "first_request_seen"
+    script = tmp_path / "worker.py"
+    script.write_text(
+        "\n".join(
+            [
+                "import json, sys, time",
+                "from pathlib import Path",
+                f"marker = Path({str(marker)!r})",
+                "for line in sys.stdin:",
+                "    if not marker.exists():",
+                "        marker.write_text('seen', encoding='utf-8')",
+                "        time.sleep(2)",
+                "    print(json.dumps({'ok': True}), flush=True)",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    worker = Worker(
+        Path(sys.executable), script, tmp_path / "worker.stderr", timeout_sec=0.2
+    )
+    try:
+        with pytest.raises(TimeoutError, match="exceeded"):
+            worker.request({"request": 1})
+        assert worker.request({"request": 2}) == {"ok": True}
+    finally:
+        worker.close()
 
 
 def test_controlled_corruption_uses_only_public_required_field():

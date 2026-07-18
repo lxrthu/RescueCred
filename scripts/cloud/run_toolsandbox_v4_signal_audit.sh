@@ -60,13 +60,14 @@ mkdir -p "$ROOT"
   --output "$LOCK" \
   --stage0-gate "$STAGE0" \
   --seed 42 --scenario-offset 40 --limit 40 \
-  --horizon 8 --event-search-steps 8 \
+  --horizon 8 --event-search-steps 8 --worker-timeout-sec 600 \
   > "$ROOT/protocol_console.log"
 
 set +e
 "$APP_PY" scripts/audit_toolsandbox_signal.py \
   --limit 3 --scenario-offset 0 --seed 42 --horizon 4 \
   --event-search-steps 4 --credit-mode lexicographic_v4 \
+  --worker-timeout-sec 600 \
   --worker-python "$MODEL_PY" --worker-script "$WORKER" \
   --output-dir "$SANITY" 2>&1 | tee "$SANITY.console.log"
 SANITY_STATUS=${PIPESTATUS[0]}
@@ -93,6 +94,7 @@ set +e
 "$APP_PY" scripts/audit_toolsandbox_signal.py \
   --limit 40 --scenario-offset 40 --seed 42 --horizon 8 \
   --event-search-steps 8 --credit-mode lexicographic_v4 \
+  --worker-timeout-sec 600 \
   --protocol-lock "$LOCK" \
   --worker-python "$MODEL_PY" --worker-script "$WORKER" \
   --output-dir "$HOLDOUT" 2>&1 | tee "$HOLDOUT.console.log"

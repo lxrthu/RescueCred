@@ -79,6 +79,7 @@ def _validate_protocol_lock(
         "limit": args.limit,
         "horizon": args.horizon,
         "event_search_steps": args.event_search_steps,
+        "worker_timeout_sec": args.worker_timeout_sec,
         "credit_mode": args.credit_mode,
         "scenario_pool_profile": V4_SCENARIO_POOL_PROFILE,
     }
@@ -153,18 +154,23 @@ class Worker:
     ) -> None:
         self.timeout_sec = float(timeout_sec)
         self._stderr = stderr_path.open("w", encoding="utf-8")
-        environment = {key: os.environ[key] for key in WORKER_ENV_ALLOWLIST if key in os.environ}
-        environment["PYTHONUNBUFFERED"] = "1"
-        command = [str(python), str(script)]
+        self._environment = {
+            key: os.environ[key] for key in WORKER_ENV_ALLOWLIST if key in os.environ
+        }
+        self._environment["PYTHONUNBUFFERED"] = "1"
+        self._command = [str(python), str(script)]
         if model:
-            command += ["--model", model]
+            self._command += ["--model", model]
         if device:
-            command += ["--device", device]
+            self._command += ["--device", device]
         self._sandbox = tempfile.TemporaryDirectory(prefix="rescuecredit-toolsandbox-worker-")
+        self._start_process()
+
+    def _start_process(self) -> None:
         self.process = subprocess.Popen(
-            command,
+            self._command,
             cwd=self._sandbox.name,
-            env=environment,
+            env=self._environment,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=self._stderr,
@@ -174,19 +180,40 @@ class Worker:
         )
         self._reader = concurrent.futures.ThreadPoolExecutor(max_workers=1)
 
+    def _stop_process(self) -> None:
+        if self.process.stdin is not None:
+            try:
+                self.process.stdin.close()
+            except BrokenPipeError:
+                pass
+        try:
+            self.process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.wait(timeout=5)
+        self._reader.shutdown(wait=True, cancel_futures=True)
+
+    def restart(self) -> None:
+        self._stop_process()
+        self._start_process()
+
     def request(self, payload: Mapping[str, Any]) -> Dict[str, Any]:
         if self.process.stdin is None or self.process.stdout is None:
             raise RuntimeError("worker pipes are unavailable")
         if self.process.poll() is not None:
-            raise RuntimeError("worker exited before request")
+            self.restart()
         self.process.stdin.write(json.dumps(payload, ensure_ascii=False) + "\n")
         self.process.stdin.flush()
         future = self._reader.submit(self.process.stdout.readline)
         try:
             raw = future.result(timeout=self.timeout_sec)
         except concurrent.futures.TimeoutError as error:
-            self.process.terminate()
-            self.process.wait(timeout=5)
+            self._stop_process()
+            self._start_process()
             raise TimeoutError(
                 "worker response exceeded " + str(self.timeout_sec) + " seconds"
             ) from error
@@ -198,17 +225,7 @@ class Worker:
         return response
 
     def close(self) -> None:
-        if self.process.stdin is not None:
-            try:
-                self.process.stdin.close()
-            except BrokenPipeError:
-                pass
-        try:
-            self.process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            self.process.terminate()
-            self.process.wait(timeout=5)
-        self._reader.shutdown(wait=True, cancel_futures=True)
+        self._stop_process()
         self._stderr.close()
         self._sandbox.cleanup()
 

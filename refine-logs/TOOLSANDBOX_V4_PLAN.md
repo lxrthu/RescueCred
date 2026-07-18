@@ -40,6 +40,9 @@ as task-success improvement.
   this expanded pool, never from the 40-row Stage-0 display subset.
 - Event search: first eligible treatment along at most eight reference-free
   visible prefix actions.
+- Worker reliability: each stateless request has a frozen 600-second ceiling;
+  a timed-out or exited worker restarts before the next independent request so
+  one provider stall cannot invalidate later scenarios.
 - Continuation: DeepSeek V4 Pro, non-thinking, temperature 0, via the configured
   OpenAI-compatible proxy.
 - No milestones, minefields, reference actions, hidden state, evaluator outputs,
