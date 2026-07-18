@@ -47,6 +47,7 @@ def test_v4_protocol_lock_binds_config_and_sources(tmp_path, monkeypatch):
         "horizon": 8,
         "event_search_steps": 8,
         "worker_timeout_sec": 600.0,
+        "harness_interface": "tool_name_v1",
         "credit_mode": "lexicographic_v4",
         "scenario_pool_profile": V4_SCENARIO_POOL_PROFILE,
         "provider": "deepseek",
@@ -68,6 +69,7 @@ def test_v4_protocol_lock_binds_config_and_sources(tmp_path, monkeypatch):
             "development_hashes": ["development"],
             "fresh_hashes": ["fresh"],
             "intersection": [],
+            "fresh_vs_excluded_intersection": [],
         },
     }
     path = tmp_path / "lock.json"
@@ -79,6 +81,7 @@ def test_v4_protocol_lock_binds_config_and_sources(tmp_path, monkeypatch):
         horizon=8,
         event_search_steps=8,
         worker_timeout_sec=600.0,
+        harness_interface="tool_name_v1",
         credit_mode="lexicographic_v4",
     )
     monkeypatch.setenv("TOOLSANDBOX_LLM_PROVIDER", "deepseek")
@@ -133,6 +136,7 @@ def test_v4_protocol_rejects_scenario_pool_profile_drift(
         "horizon": 8,
         "event_search_steps": 8,
         "worker_timeout_sec": 600.0,
+        "harness_interface": "tool_name_v1",
         "credit_mode": "lexicographic_v4",
         "scenario_pool_profile": "wrong_profile",
         "provider": "deepseek",
@@ -154,6 +158,7 @@ def test_v4_protocol_rejects_scenario_pool_profile_drift(
             "development_hashes": ["development"],
             "fresh_hashes": ["fresh"],
             "intersection": [],
+            "fresh_vs_excluded_intersection": [],
         },
     }
     path = tmp_path / "lock.json"
@@ -165,6 +170,7 @@ def test_v4_protocol_rejects_scenario_pool_profile_drift(
         horizon=8,
         event_search_steps=8,
         worker_timeout_sec=600.0,
+        harness_interface="tool_name_v1",
         credit_mode="lexicographic_v4",
     )
     monkeypatch.setenv("TOOLSANDBOX_LLM_PROVIDER", "deepseek")

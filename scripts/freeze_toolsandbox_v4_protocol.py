@@ -49,10 +49,10 @@ def protocol_payload(args: argparse.Namespace, root: Path) -> dict[str, Any]:
         offset=args.scenario_offset,
         allow_distraction_tools=True,
     )
-    if len(fresh) < 30:
+    if len(fresh) < args.minimum_scenarios:
         raise RuntimeError(
             f"insufficient fresh ToolSandbox scenarios at offset "
-            f"{args.scenario_offset}: {len(fresh)} < 30"
+            f"{args.scenario_offset}: {len(fresh)} < {args.minimum_scenarios}"
         )
     development_hashes = [
         hashlib.sha256(name.encode("utf-8")).hexdigest() for name, _ in development
@@ -63,17 +63,49 @@ def protocol_payload(args: argparse.Namespace, root: Path) -> dict[str, Any]:
     intersection = sorted(set(development_hashes) & set(fresh_hashes))
     if intersection:
         raise ValueError("development and fresh ToolSandbox scenarios overlap")
+    excluded_hashes: set[str] = set()
+    excluded_protocols = []
+    for excluded_path_value in args.exclude_protocol:
+        excluded_path = excluded_path_value.resolve()
+        if not excluded_path.is_file():
+            raise FileNotFoundError(excluded_path)
+        excluded_payload = json.loads(excluded_path.read_text(encoding="utf-8"))
+        identity = excluded_payload.get("scenario_identity", {})
+        if not isinstance(identity, dict):
+            raise ValueError(f"excluded protocol has no scenario identity: {excluded_path}")
+        hashes = set(identity.get("development_hashes", [])) | set(
+            identity.get("fresh_hashes", [])
+        )
+        if not hashes:
+            raise ValueError(f"excluded protocol has no scenario hashes: {excluded_path}")
+        excluded_hashes.update(str(value) for value in hashes)
+        excluded_protocols.append(
+            {
+                "path": str(excluded_path),
+                "sha256": sha256_file(excluded_path),
+                "scenario_hashes": sorted(str(value) for value in hashes),
+            }
+        )
+    fresh_vs_excluded = sorted(set(fresh_hashes) & excluded_hashes)
+    if fresh_vs_excluded:
+        raise ValueError("fresh ToolSandbox scenarios overlap an excluded protocol")
 
     return {
         "status": "frozen_before_v4_outcomes",
-        "stage": "toolsandbox_v4_lexicographic_regret",
+        "stage": (
+            "toolsandbox_v41_tool_id_lexicographic_regret"
+            if args.harness_interface == "tool_id_v2"
+            else "toolsandbox_v4_lexicographic_regret"
+        ),
         "toolsandbox_commit": TOOL_SANDBOX_COMMIT,
         "seed": args.seed,
         "scenario_offset": args.scenario_offset,
         "limit": args.limit,
+        "minimum_scenarios": args.minimum_scenarios,
         "horizon": args.horizon,
         "event_search_steps": args.event_search_steps,
         "worker_timeout_sec": args.worker_timeout_sec,
+        "harness_interface": args.harness_interface,
         "credit_mode": "lexicographic_v4",
         "scenario_pool_profile": V4_SCENARIO_POOL_PROFILE,
         "lexicographic_component_order": list(LEXICOGRAPHIC_COMPONENT_ORDER),
@@ -99,6 +131,8 @@ def protocol_payload(args: argparse.Namespace, root: Path) -> dict[str, Any]:
             "fresh_hashes": fresh_hashes,
             "fresh_count": len(fresh_hashes),
             "intersection": intersection,
+            "excluded_protocols": excluded_protocols,
+            "fresh_vs_excluded_intersection": fresh_vs_excluded,
         },
         "reference_boundary": {
             "prefix": "reference-free visible worker actions only",
@@ -124,6 +158,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--horizon", type=int, default=8)
     parser.add_argument("--event-search-steps", type=int, default=8)
     parser.add_argument("--worker-timeout-sec", type=float, default=600.0)
+    parser.add_argument(
+        "--harness-interface",
+        choices=("tool_name_v1", "tool_id_v2"),
+        default="tool_name_v1",
+    )
+    parser.add_argument("--minimum-scenarios", type=int, default=30)
+    parser.add_argument(
+        "--exclude-protocol", type=Path, action="append", default=[]
+    )
     return parser.parse_args()
 
 

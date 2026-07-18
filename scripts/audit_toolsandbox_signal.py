@@ -17,6 +17,7 @@ from environments.toolsandbox import (
     TOOL_SANDBOX_COMMIT,
     V4_SCENARIO_POOL_PROFILE,
     ToolSandboxRuntime,
+    action_schema_complete,
     controlled_missing_argument,
     score_decision,
 )
@@ -80,6 +81,7 @@ def _validate_protocol_lock(
         "horizon": args.horizon,
         "event_search_steps": args.event_search_steps,
         "worker_timeout_sec": args.worker_timeout_sec,
+        "harness_interface": args.harness_interface,
         "credit_mode": args.credit_mode,
         "scenario_pool_profile": V4_SCENARIO_POOL_PROFILE,
     }
@@ -139,6 +141,36 @@ def _validate_protocol_lock(
         raise ValueError("protocol scenario identity is missing")
     if scenario_identity.get("intersection") != []:
         raise ValueError("protocol development/fresh scenario sets overlap")
+    if scenario_identity.get("fresh_vs_excluded_intersection") != []:
+        raise ValueError("protocol fresh scenarios overlap excluded prior outcomes")
+    excluded_hashes: set[str] = set()
+    excluded_protocols = scenario_identity.get("excluded_protocols", [])
+    if not isinstance(excluded_protocols, list):
+        raise ValueError("protocol excluded-protocol inventory is invalid")
+    for record in excluded_protocols:
+        if not isinstance(record, Mapping):
+            raise ValueError("protocol excluded-protocol record is invalid")
+        excluded_path = Path(str(record.get("path", "")))
+        if not excluded_path.is_file() or _sha256(excluded_path) != record.get(
+            "sha256"
+        ):
+            raise ValueError("excluded protocol identity mismatch")
+        excluded_payload = json.loads(excluded_path.read_text(encoding="utf-8"))
+        excluded_identity = excluded_payload.get("scenario_identity", {})
+        actual_hashes = set(excluded_identity.get("development_hashes", [])) | set(
+            excluded_identity.get("fresh_hashes", [])
+        )
+        recorded_hashes = set(record.get("scenario_hashes", []))
+        if actual_hashes != recorded_hashes:
+            raise ValueError("excluded protocol scenario hashes mismatch")
+        excluded_hashes.update(str(value) for value in actual_hashes)
+    recomputed_excluded_overlap = sorted(
+        set(scenario_identity.get("fresh_hashes", [])) & excluded_hashes
+    )
+    if recomputed_excluded_overlap != scenario_identity.get(
+        "fresh_vs_excluded_intersection"
+    ):
+        raise ValueError("excluded protocol overlap was not independently reproduced")
     return _sha256(path), dict(lock)
 
 
@@ -151,6 +183,7 @@ class Worker:
         model: Optional[str] = None,
         device: Optional[str] = None,
         timeout_sec: float = 180.0,
+        harness_interface: str = "tool_name_v1",
     ) -> None:
         self.timeout_sec = float(timeout_sec)
         self._stderr = stderr_path.open("w", encoding="utf-8")
@@ -163,6 +196,7 @@ class Worker:
             self._command += ["--model", model]
         if device:
             self._command += ["--device", device]
+        self._command += ["--harness-interface", harness_interface]
         self._sandbox = tempfile.TemporaryDirectory(prefix="rescuecredit-toolsandbox-worker-")
         self._start_process()
 
@@ -448,6 +482,11 @@ def main() -> None:
     parser.add_argument("--worker-model")
     parser.add_argument("--worker-device")
     parser.add_argument("--worker-timeout-sec", type=float, default=180.0)
+    parser.add_argument(
+        "--harness-interface",
+        choices=("tool_name_v1", "tool_id_v2"),
+        default="tool_name_v1",
+    )
     parser.add_argument("--protocol-lock", type=Path)
     parser.add_argument(
         "--event-search-steps",
@@ -512,12 +551,14 @@ def main() -> None:
         args.worker_model,
         args.worker_device,
         args.worker_timeout_sec,
+        args.harness_interface,
     )
     try:
         for index, (scenario_name, scenario) in enumerate(selected, start=1):
             prefix = runtime.prepare(scenario)
             task_hash = hashlib.sha256(scenario_name.encode("utf-8")).hexdigest()
             treatment_found = False
+            scenario_schema_complete_proposal = False
             search_steps = min(args.horizon, max(1, args.event_search_steps))
             examined = 0
             for prefix_step in range(search_steps):
@@ -531,6 +572,9 @@ def main() -> None:
                 except Exception as error:
                     worker_failures += 1
                     proposal_stats["proposal_worker_failures"] += 1
+                    proposal_stats[
+                        "proposal_error_" + type(error).__name__
+                    ] += 1
                     print(
                         json.dumps(
                             {
@@ -549,9 +593,18 @@ def main() -> None:
                     proposal_stats[
                         "proposal_stops" if stopped else "proposal_invalid"
                     ] += 1
+                    if not stopped:
+                        error_type = str(
+                            proposal_response.get("error_type") or "missing_action"
+                        )
+                        proposal_stats["proposal_error_" + error_type] += 1
                     worker_failures += int(not stopped)
                     break
                 proposal_stats["proposal_actions"] += 1
+                scenario_schema_complete_proposal = (
+                    scenario_schema_complete_proposal or
+                    action_schema_complete(proposal, schemas)
+                )
 
                 # Execute once on an isolated snapshot. This both verifies exact
                 # restore semantics and supplies the visible receipt for the
@@ -621,9 +674,10 @@ def main() -> None:
                                 },
                             )
                         )
-                    except Exception:
+                    except Exception as error:
                         worker_failures += 1
                         proposal_stats["repair_worker_failures"] += 1
+                        proposal_stats["repair_error_" + type(error).__name__] += 1
                         break
                     repair = _action_or_none(repair_response)
                     if repair is not None and repair != proposal:
@@ -661,6 +715,9 @@ def main() -> None:
                     elif repair_response.get("error_type"):
                         worker_failures += 1
                         proposal_stats["repair_invalid"] += 1
+                        proposal_stats[
+                            "repair_error_" + str(repair_response["error_type"])
+                        ] += 1
                     else:
                         proposal_stats["repair_abstentions"] += 1
 
@@ -670,6 +727,8 @@ def main() -> None:
                 proposal_stats["reference_free_prefix_advances"] += 1
             if not treatment_found:
                 proposal_stats["scenarios_without_treatment"] += 1
+            if scenario_schema_complete_proposal:
+                proposal_stats["scenarios_with_schema_complete_proposal"] += 1
 
             nonzero = sum(
                 row.get("replay_valid") and row.get("decision") != "zero_delta"
@@ -742,6 +801,7 @@ def main() -> None:
             "scenario_offset": args.scenario_offset,
             "horizon": args.horizon,
             "credit_mode": args.credit_mode,
+            "harness_interface": args.harness_interface,
             "protocol_lock_sha256": protocol_lock_sha256,
             "protocol_validated": protocol_validated,
             "toolsandbox_commit": TOOL_SANDBOX_COMMIT,
@@ -753,6 +813,23 @@ def main() -> None:
                 ),
                 "statistics": dict(sorted(proposal_stats.items())),
                 "reference_actions_used": False,
+            },
+            "proposal_coverage": {
+                "schema_complete_scenarios": proposal_stats[
+                    "scenarios_with_schema_complete_proposal"
+                ],
+                "selected_scenarios": len(selected),
+                "rate": (
+                    proposal_stats["scenarios_with_schema_complete_proposal"]
+                    / len(selected)
+                    if selected
+                    else 0.0
+                ),
+                "error_types": {
+                    key.removeprefix("proposal_error_"): value
+                    for key, value in sorted(proposal_stats.items())
+                    if key.startswith("proposal_error_")
+                },
             },
             "snapshot_audit": {
                 "snapshot_checks": snapshot_checks,

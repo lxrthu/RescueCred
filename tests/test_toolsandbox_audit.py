@@ -21,7 +21,7 @@ from scripts.audit_toolsandbox_signal import (
     _official_score_readonly,
     _snapshot_audit_exact,
 )
-from scripts.toolsandbox_azure_worker import _validate
+from scripts.toolsandbox_azure_worker import _indexed_tool_catalog, _request, _validate
 
 
 SCHEMAS = [
@@ -214,14 +214,86 @@ def test_console_fingerprint_is_semantic_not_object_identity_based():
 
 def test_worker_validation_rejects_unknown_tools_and_allows_repair_abstention():
     result, error = _validate(
-        {"tool": "send_message", "arguments": {"content": "x"}},
+        {
+            "tool": "send_message",
+            "arguments": {"content": "x", "phone_number": "+123"},
+        },
         SCHEMAS,
         False,
     )
     assert error is None
     assert result["action"]["tool"] == "send_message"
+    assert _validate(
+        {"tool": "send_message", "arguments": {"content": "x"}},
+        SCHEMAS,
+        False,
+    )[1] == "missing_required_arguments"
     assert _validate({"tool": "hidden", "arguments": {}}, SCHEMAS, False)[1] == "unknown_tool"
     assert _validate({"abstain": True}, SCHEMAS, True)[0]["abstained"] is True
+
+
+def test_tool_id_catalog_is_deterministic_and_maps_to_exact_public_name():
+    second = {
+        "type": "function",
+        "function": {
+            "name": "alpha_lookup",
+            "description": "Lookup.",
+            "parameters": {"type": "object", "properties": {}},
+        },
+    }
+    catalog, mapping = _indexed_tool_catalog([SCHEMAS[0], second])
+    assert [item["name"] for item in catalog] == ["alpha_lookup", "send_message"]
+    assert mapping == {"T0000": "alpha_lookup", "T0001": "send_message"}
+    result, error = _validate(
+        {
+            "tool_id": "T0001",
+            "arguments": {"content": "x", "phone_number": "+123"},
+        },
+        [SCHEMAS[0], second],
+        False,
+        "tool_id_v2",
+    )
+    assert error is None
+    assert result["action"]["tool"] == "send_message"
+    assert result["mapped_from_public_catalog"] is True
+    assert _validate(
+        {"tool": "send_message", "arguments": {}},
+        SCHEMAS,
+        False,
+        "tool_id_v2",
+    )[1] == "tool_id_missing"
+    assert _validate(
+        {"tool_id": "T9999", "arguments": {}},
+        SCHEMAS,
+        False,
+        "tool_id_v2",
+    )[1] == "unknown_tool_id"
+
+
+def test_tool_id_request_exposes_only_public_catalog_and_returns_mapped_action():
+    class Client:
+        def __init__(self):
+            self.messages = None
+
+        def complete(self, messages, **kwargs):
+            self.messages = messages
+            return '{"tool_id":"T0000","arguments":{"content":"x","phone_number":"+123"}}'
+
+    client = Client()
+    result = _request(
+        client,
+        {
+            "mode": "propose",
+            "history": [{"role": "user", "content": "send x"}],
+            "tool_schemas": SCHEMAS,
+            "remaining_steps": 4,
+        },
+        "tool_id_v2",
+    )
+    visible = json.loads(client.messages[-1]["content"])
+    assert "public_tool_catalog" in visible
+    assert "public_tool_schemas" not in visible
+    assert result["action"]["tool"] == "send_message"
 
 
 def _rows(controlled_nonzero=8, natural=3):

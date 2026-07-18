@@ -16,8 +16,10 @@ REQUIRED_V4_SOURCE_PATHS = (
     "rescuecredit/toolsandbox_credit.py",
     "rescuecredit/toolsandbox_protocol.py",
     "scripts/audit_toolsandbox_signal.py",
+    "scripts/check_toolsandbox_v41_diagnostic_gate.py",
     "scripts/check_llm.py",
     "scripts/cloud/run_toolsandbox_v4_signal_audit.sh",
+    "scripts/cloud/run_toolsandbox_v41_toolid_audit.sh",
     "scripts/freeze_toolsandbox_v4_protocol.py",
     "scripts/toolsandbox_azure_worker.py",
 )

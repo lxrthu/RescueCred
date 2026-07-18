@@ -115,3 +115,7 @@
 | 2026-07-18 23:58 | /experiment-bridge | refine-logs/TOOLSANDBOX_V4_POOL_CODE_REVIEW.md | review | latest ToolSandbox V4 pool-repair review pointer |
 | 2026-07-19 00:20 | /monitor-experiment | refine-logs/TOOLSANDBOX_V4_WORKER_TIMEOUT_ERRATUM_20260718.md | sanity repair | documents the pre-holdout timeout cascade and frozen correction |
 | 2026-07-19 00:20 | /monitor-experiment | refine-logs/TOOLSANDBOX_V4_WORKER_CODE_REVIEW_20260718.md | review | local-only pre-deploy review of worker restart and timeout binding |
+| 2026-07-19 10:00 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_PLAN_20260719.md | plan | timestamped pre-outcome Tool-ID Harness diagnostic and confirmation protocol |
+| 2026-07-19 10:00 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_PLAN.md | plan | latest ToolSandbox V4.1 Tool-ID Harness plan pointer |
+| 2026-07-19 10:30 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_CODE_REVIEW_20260719.md | review | timestamped local-only Tool-ID Harness deployment review |
+| 2026-07-19 10:30 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_CODE_REVIEW.md | review | latest ToolSandbox V4.1 review pointer |
