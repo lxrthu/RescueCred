@@ -12,3 +12,7 @@
 | R200-R208 | confirmatory | BLOCKED_BY_PILOT_GATE | `scripts/cloud/run_confirmatory_4gpu.sh` |
 | R100-v2-full | deployable full-data seed-42 pilot | NEGATIVE_DEGENERATE | Mask-v2 = RescueCredit-v2 = 7/18; zero eligible audits |
 | R101-v2-curriculum | shared visible-structure sampling sanity | READY_CLOUD | `scripts/cloud/run_v2_visible_curriculum_smoke_2gpu.sh`; gate: 5 audits and 3 nonzero causal events |
+| TS000 | ToolSandbox pinned contract probe | READY_CLOUD | `scripts/cloud/setup_toolsandbox_stage0.sh`; commit, snapshot, schema, evaluator gates |
+| TS001 | ToolSandbox 3-scenario signal integration smoke | READY_CLOUD | automatic first stage of `scripts/cloud/run_toolsandbox_signal_audit.sh` |
+| TS002 | ToolSandbox 40-scenario Harness/Shadow audit | READY_CLOUD | natural visible-error repair plus controlled missing-argument signal; no V3.1 training yet |
+| TS003 | ToolSandbox implementation review | DEPLOY_YES | pinned-source review resolved scenario-count, role-boundary, gate-accounting, console-snapshot, and timeout blockers |

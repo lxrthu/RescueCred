@@ -76,6 +76,18 @@
 - `scripts/cloud/run_route_a_appworld_dev_pair.sh`: GPU sanity plus two-GPU paired dev runner.
 - `docs/ROUTE_A_APPWORLD_DEV_EVAL_CN.md`: Chinese evaluation contract and commands.
 - `dist/PASTE_ROUTE_A_APPWORLD_DEV_TO_SERVER.sh`: password-free paste-and-launch bundle.
+
+## ToolSandbox Harness/Shadow signal audit
+
+- `environments/toolsandbox/adapter.py`: pinned official ToolSandbox snapshot, tool execution, visible-history, and evaluator adapter.
+- `rescuecredit/toolsandbox_audit.py`: natural/controlled signal summaries and frozen promotion gate.
+- `scripts/inspect_toolsandbox_contract.py`: exact commit, snapshot restore, schema, and evaluator contract probe.
+- `scripts/toolsandbox_azure_worker.py`: reference-free proposal, repair, and continuation worker.
+- `scripts/audit_toolsandbox_signal.py`: paired branch audit using official `EvaluationResult.similarity`.
+- `scripts/cloud/setup_toolsandbox_stage0.sh`: isolated Python 3.9 environment and pinned official checkout.
+- `scripts/cloud/run_toolsandbox_signal_audit.sh`: 3-scenario smoke followed by 40-scenario audit.
+- `tests/test_toolsandbox_audit.py`: corruption, worker validation, three-way credit, and gate tests.
+- `docs/TOOLSANDBOX_SIGNAL_AUDIT_CN.md`: cloud commands, output contract, and interpretation limits.
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW_20260716_191149.md | implementation | timestamped local-only dev evaluation review |
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW.md | implementation | latest dev evaluation review pointer |
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_TRACKER_20260716_191149.md | implementation | timestamped sanity and full dev run tracker |
