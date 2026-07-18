@@ -217,6 +217,7 @@ class ToolSandboxRuntime:
         self,
         limit: int,
         seed: int,
+        offset: int = 0,
         require_state_dependency: bool = False,
         require_multiple_tool: bool = True,
         require_single_user_turn: bool = True,
@@ -248,10 +249,13 @@ class ToolSandboxRuntime:
                 else other_stateful
             )
             target.append((name, scenario))
+        if offset < 0:
+            raise ValueError("scenario offset must be nonnegative")
         rng = random.Random(seed)
         rng.shuffle(state_dependency)
         rng.shuffle(other_stateful)
-        return (state_dependency + other_stateful)[:limit]
+        ordered = state_dependency + other_stateful
+        return ordered[offset : offset + limit]
 
     def _agent_tools(self, context: Any) -> Dict[str, Any]:
         """Apply the same visibility rule as official BaseRole.get_available_tools."""

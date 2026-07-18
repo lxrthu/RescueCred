@@ -5,6 +5,8 @@ import sys
 import types
 from pathlib import Path
 
+import pytest
+
 from environments.toolsandbox.adapter import (
     action_schema_complete,
     canonical_action,
@@ -13,6 +15,7 @@ from environments.toolsandbox.adapter import (
     score_decision,
 )
 from rescuecredit.toolsandbox_audit import build_summary_and_gate
+from scripts.audit_toolsandbox_signal import _official_score_readonly, _snapshot_audit_exact
 from scripts.toolsandbox_azure_worker import _validate
 
 
@@ -33,6 +36,28 @@ SCHEMAS = [
         },
     }
 ]
+
+
+def test_intermediate_official_score_must_not_mutate_continuation_state():
+    class Runtime:
+        @staticmethod
+        def context_digest(context):
+            return str(context["value"])
+
+        @staticmethod
+        def official_score(scenario, context):
+            context["value"] += 1
+            return {"similarity": 0.0}
+
+    with pytest.raises(RuntimeError, match="mutated branch continuation state"):
+        _official_score_readonly(Runtime(), object(), {"value": 0})
+
+
+def test_snapshot_gate_requires_checks_and_zero_mismatches():
+    assert _snapshot_audit_exact(3, 0, 6, 0) is True
+    assert _snapshot_audit_exact(0, 0, 0, 0) is False
+    assert _snapshot_audit_exact(3, 1, 6, 0) is False
+    assert _snapshot_audit_exact(3, 0, 6, 1) is False
 
 
 def test_worker_imports_project_code_from_isolated_cwd(tmp_path: Path):
@@ -125,6 +150,8 @@ def _rows(controlled_nonzero=8, natural=3):
                 "replay_valid": True,
                 "decision": score_decision(delta),
                 "delta": delta,
+                "terminal_delta": delta,
+                "decision_basis": "final_official_similarity",
             }
         )
     for index in range(natural):
@@ -134,6 +161,8 @@ def _rows(controlled_nonzero=8, natural=3):
                 "replay_valid": True,
                 "decision": "rescue_preference",
                 "delta": 0.1,
+                "terminal_delta": 0.1,
+                "decision_basis": "final_official_similarity",
             }
         )
     return rows
@@ -150,6 +179,7 @@ def test_signal_gate_passes_dense_controlled_and_natural_audit():
     )
     assert gate["passed"] is True
     assert summary["controlled"]["nonzero_rate"] == 0.4
+    assert summary["controlled"]["terminal_nonzero_rate"] == 0.4
     assert summary["reference_boundary"]["reference_actions"] == "never read or exported"
     assert "reference-free" in summary["reference_boundary"]["treatment_search_prefix"]
 
@@ -167,6 +197,37 @@ def test_signal_gate_rejects_sparse_or_reference_invalid_run():
     assert gate["checks"]["controlled_signal_density"] is False
     assert gate["checks"]["snapshot_restore_exact"] is False
     assert gate["checks"]["natural_harness_has_coverage"] is False
+
+
+def test_mechanism_gate_is_reported_separately_from_deployable_harness():
+    summary_rows = _rows(controlled_nonzero=8, natural=0)
+    _, gate = build_summary_and_gate(
+        summary_rows,
+        scenarios_requested=40,
+        scenarios_selected=40,
+        worker_failures=0,
+        snapshot_restore_exact=True,
+        official_evaluator_used=True,
+    )
+    assert gate["mechanism_passed"] is True
+    assert gate["deployable_harness_passed"] is False
+    assert gate["passed"] is False
+
+
+def test_v4_gate_cannot_pass_without_validated_protocol_lock():
+    _, gate = build_summary_and_gate(
+        _rows(),
+        scenarios_requested=40,
+        scenarios_selected=40,
+        worker_failures=0,
+        snapshot_restore_exact=True,
+        official_evaluator_used=True,
+        protocol_required=True,
+        protocol_validated=False,
+    )
+    assert gate["mechanism_passed"] is False
+    assert gate["deployable_harness_passed"] is False
+    assert gate["checks"]["protocol_validated"] is False
 
 
 def test_natural_coverage_requires_replay_valid_pairs():
@@ -189,6 +250,35 @@ def test_natural_coverage_requires_replay_valid_pairs():
         official_evaluator_used=True,
     )
     assert gate["checks"]["natural_harness_has_coverage"] is False
+
+
+def test_natural_zero_or_reverse_pairs_cannot_authorize_deployable_claim():
+    rows = _rows(controlled_nonzero=8, natural=0)
+    rows.extend(
+        {
+            "mode": "natural_visible_error_repair",
+            "replay_valid": True,
+            "decision": "reverse_preference" if index == 0 else "zero_delta",
+            "delta": -0.1 if index == 0 else 0.0,
+            "terminal_delta": -0.1 if index == 0 else 0.0,
+            "decision_basis": (
+                "final_official_similarity" if index == 0 else "all_components_tied"
+            ),
+        }
+        for index in range(3)
+    )
+    _, gate = build_summary_and_gate(
+        rows,
+        scenarios_requested=40,
+        scenarios_selected=40,
+        worker_failures=0,
+        snapshot_restore_exact=True,
+        official_evaluator_used=True,
+    )
+    assert gate["mechanism_passed"] is True
+    assert gate["deployable_harness_passed"] is False
+    assert gate["checks"]["natural_harness_has_nonzero_credit"] is False
+    assert gate["checks"]["natural_harness_wins_over_losses"] is False
 
 
 def test_audit_rows_are_json_serializable():
