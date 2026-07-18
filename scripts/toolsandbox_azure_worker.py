@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from typing import Any, Dict, List, Mapping, Optional, Tuple
@@ -150,7 +151,8 @@ def main() -> None:
     parser.add_argument("--model")
     parser.add_argument("--device")
     parser.parse_args()
-    client = AzureOpenAIAdapter()
+    provider = os.getenv("TOOLSANDBOX_LLM_PROVIDER", "azure")
+    client = AzureOpenAIAdapter(provider=provider)
     for raw in sys.stdin:
         try:
             response = _request(client, json.loads(raw))

@@ -24,6 +24,10 @@ from rescuecredit.toolsandbox_audit import build_summary_and_gate
 WORKER_ENV_ALLOWLIST = (
     "AZURE_OPENAI_API_KEY",
     "AZURE_OPENAI_API_VERSION",
+    "DEEPSEEK_API_KEY",
+    "DEEPSEEK_BASE_URL",
+    "DEEPSEEK_MODEL",
+    "DEEPSEEK_THINKING",
     "DEPLOYMENT_NAME",
     "ENDPOINT_URL",
     "HTTPS_PROXY",
@@ -31,6 +35,7 @@ WORKER_ENV_ALLOWLIST = (
     "NO_PROXY",
     "REQUESTS_CA_BUNDLE",
     "SSL_CERT_FILE",
+    "TOOLSANDBOX_LLM_PROVIDER",
 )
 
 
@@ -447,6 +452,25 @@ def main() -> None:
             "toolsandbox_commit": TOOL_SANDBOX_COMMIT,
             "worker_python": str(worker_python),
             "worker_script_sha256": _sha256(worker_script),
+            "worker_llm": {
+                "provider": os.getenv("TOOLSANDBOX_LLM_PROVIDER", "azure"),
+                "model": (
+                    os.getenv("DEEPSEEK_MODEL", "deepseek-v4-pro")
+                    if os.getenv("TOOLSANDBOX_LLM_PROVIDER", "azure") == "deepseek"
+                    else os.getenv("DEPLOYMENT_NAME", "gpt-4o")
+                ),
+                "base_url": (
+                    os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+                    if os.getenv("TOOLSANDBOX_LLM_PROVIDER", "azure") == "deepseek"
+                    else os.getenv("ENDPOINT_URL", "https://scdall3.openai.azure.com/")
+                ),
+                "thinking": (
+                    os.getenv("DEEPSEEK_THINKING", "disabled")
+                    if os.getenv("TOOLSANDBOX_LLM_PROVIDER", "azure") == "deepseek"
+                    else None
+                ),
+                "secret_exported": False,
+            },
             "event_file_sha256": _sha256(events_path),
             "selected_scenario_hashes": [
                 hashlib.sha256(name.encode("utf-8")).hexdigest() for name, _ in selected

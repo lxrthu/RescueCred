@@ -21,6 +21,7 @@ test -f "$STAGE0"
   environments/toolsandbox/adapter.py \
   rescuecredit/toolsandbox_audit.py \
   scripts/toolsandbox_azure_worker.py \
+  scripts/check_llm.py \
   scripts/audit_toolsandbox_signal.py
 "$MODEL_PY" -m pytest -q tests/test_toolsandbox_audit.py
 
@@ -33,11 +34,30 @@ PY
 set -a
 source .env
 set +a
-if [ -z "${AZURE_OPENAI_API_KEY:-}" ]; then
-  echo "Set AZURE_OPENAI_API_KEY in $REPO_ROOT/.env" >&2
-  exit 2
-fi
-"$MODEL_PY" scripts/check_azure.py > "$REPO_ROOT/outputs/toolsandbox_azure_check.log" 2>&1
+PROVIDER="${TOOLSANDBOX_LLM_PROVIDER:-azure}"
+case "$PROVIDER" in
+  azure)
+    if [ -z "${AZURE_OPENAI_API_KEY:-}" ]; then
+      echo "Set AZURE_OPENAI_API_KEY in $REPO_ROOT/.env" >&2
+      exit 2
+    fi
+    ;;
+  deepseek)
+    if [ -z "${DEEPSEEK_API_KEY:-}" ]; then
+      echo "Set DEEPSEEK_API_KEY in $REPO_ROOT/.env" >&2
+      exit 2
+    fi
+    export DEEPSEEK_BASE_URL="${DEEPSEEK_BASE_URL:-https://api.deepseek.com}"
+    export DEEPSEEK_MODEL="${DEEPSEEK_MODEL:-deepseek-v4-pro}"
+    export DEEPSEEK_THINKING="${DEEPSEEK_THINKING:-disabled}"
+    ;;
+  *)
+    echo "Unsupported TOOLSANDBOX_LLM_PROVIDER=$PROVIDER" >&2
+    exit 2
+    ;;
+esac
+"$MODEL_PY" scripts/check_llm.py --provider "$PROVIDER" \
+  > "$REPO_ROOT/outputs/toolsandbox_llm_check.log" 2>&1
 
 if [ -e "$SANITY" ] || [ -e "$OUT" ]; then
   echo "Refusing to reuse ToolSandbox output directories." >&2
