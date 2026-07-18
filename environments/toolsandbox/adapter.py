@@ -12,6 +12,9 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 # The only commit on apple/ToolSandbox at implementation time. Setup scripts
 # verify this identity instead of silently following a moving default branch.
 TOOL_SANDBOX_COMMIT = "165848b9a78cead7ca7fe7c89c688b58e6501219"
+V4_SCENARIO_POOL_PROFILE = (
+    "single_user_multiple_tool_tiered_no_distraction_prefix_v1"
+)
 
 
 def _plain(value: Any) -> Any:
@@ -221,14 +224,20 @@ class ToolSandboxRuntime:
         require_state_dependency: bool = False,
         require_multiple_tool: bool = True,
         require_single_user_turn: bool = True,
+        allow_distraction_tools: bool = False,
     ) -> List[Tuple[str, Any]]:
         import random
 
-        state_dependency: List[Tuple[str, Any]] = []
-        other_stateful: List[Tuple[str, Any]] = []
+        no_distraction_state_dependency: List[Tuple[str, Any]] = []
+        no_distraction_other: List[Tuple[str, Any]] = []
+        distraction_state_dependency: List[Tuple[str, Any]] = []
+        distraction_other: List[Tuple[str, Any]] = []
         for name, scenario in self.scenarios().items():
             categories = set(scenario.categories)
-            if self.ScenarioCategories.NO_DISTRACTION_TOOLS not in categories:
+            has_no_distraction_tools = (
+                self.ScenarioCategories.NO_DISTRACTION_TOOLS in categories
+            )
+            if not allow_distraction_tools and not has_no_distraction_tools:
                 continue
             if require_state_dependency and self.ScenarioCategories.STATE_DEPENDENCY not in categories:
                 continue
@@ -243,18 +252,33 @@ class ToolSandboxRuntime:
             tools = self._agent_tools(context)
             if any("rapid_api_search_tools" in tool.__module__ for tool in tools.values()):
                 continue
-            target = (
-                state_dependency
-                if self.ScenarioCategories.STATE_DEPENDENCY in categories
-                else other_stateful
-            )
+            if has_no_distraction_tools:
+                target = (
+                    no_distraction_state_dependency
+                    if self.ScenarioCategories.STATE_DEPENDENCY in categories
+                    else no_distraction_other
+                )
+            else:
+                target = (
+                    distraction_state_dependency
+                    if self.ScenarioCategories.STATE_DEPENDENCY in categories
+                    else distraction_other
+                )
             target.append((name, scenario))
         if offset < 0:
             raise ValueError("scenario offset must be nonnegative")
         rng = random.Random(seed)
-        rng.shuffle(state_dependency)
-        rng.shuffle(other_stateful)
-        ordered = state_dependency + other_stateful
+        # Preserve the original no-distraction ordering as an exact prefix.  V4
+        # can therefore reserve that prefix for development and draw a genuinely
+        # fresh holdout from the broader eligible pool without outcome-dependent
+        # resampling.
+        rng.shuffle(no_distraction_state_dependency)
+        rng.shuffle(no_distraction_other)
+        rng.shuffle(distraction_state_dependency)
+        rng.shuffle(distraction_other)
+        ordered = no_distraction_state_dependency + no_distraction_other
+        if allow_distraction_tools:
+            ordered += distraction_state_dependency + distraction_other
         return ordered[offset : offset + limit]
 
     def _agent_tools(self, context: Any) -> Dict[str, Any]:

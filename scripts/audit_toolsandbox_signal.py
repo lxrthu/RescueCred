@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Mapping, Optional
 
 from environments.toolsandbox import (
     TOOL_SANDBOX_COMMIT,
+    V4_SCENARIO_POOL_PROFILE,
     ToolSandboxRuntime,
     controlled_missing_argument,
     score_decision,
@@ -79,6 +80,7 @@ def _validate_protocol_lock(
         "horizon": args.horizon,
         "event_search_steps": args.event_search_steps,
         "credit_mode": args.credit_mode,
+        "scenario_pool_profile": V4_SCENARIO_POOL_PROFILE,
     }
     for key, value in expected.items():
         if lock.get(key) != value:
@@ -460,7 +462,10 @@ def main() -> None:
 
     runtime = ToolSandboxRuntime()
     selected = runtime.select_scenarios(
-        limit=args.limit, seed=args.seed, offset=args.scenario_offset
+        limit=args.limit,
+        seed=args.seed,
+        offset=args.scenario_offset,
+        allow_distraction_tools=(args.credit_mode == "lexicographic_v4"),
     )
     selected_scenario_hashes = [
         hashlib.sha256(name.encode("utf-8")).hexdigest() for name, _ in selected

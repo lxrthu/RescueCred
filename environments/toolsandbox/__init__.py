@@ -2,6 +2,7 @@
 
 from .adapter import (
     TOOL_SANDBOX_COMMIT,
+    V4_SCENARIO_POOL_PROFILE,
     ToolSandboxRuntime,
     canonical_action,
     console_namespace_fingerprint,
@@ -11,6 +12,7 @@ from .adapter import (
 
 __all__ = [
     "TOOL_SANDBOX_COMMIT",
+    "V4_SCENARIO_POOL_PROFILE",
     "ToolSandboxRuntime",
     "canonical_action",
     "console_namespace_fingerprint",

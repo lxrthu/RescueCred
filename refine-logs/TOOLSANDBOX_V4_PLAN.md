@@ -34,6 +34,10 @@ as task-success improvement.
 - ToolSandbox commit: `165848b9a78cead7ca7fe7c89c688b58e6501219`.
 - Development sanity: offset 0, limit 3, seed 42, H4.
 - Fresh primary audit: offset 40, limit 40, seed 42, H8.
+- Scenario pool: deterministic single-user/multiple-tool tiers. The original
+  no-distraction selection is an exact prefix; state-dependency and then other
+  eligible distraction-tool scenarios extend the pool. Offset 40 is taken from
+  this expanded pool, never from the 40-row Stage-0 display subset.
 - Event search: first eligible treatment along at most eight reference-free
   visible prefix actions.
 - Continuation: DeepSeek V4 Pro, non-thinking, temperature 0, via the configured
@@ -43,6 +47,10 @@ as task-success improvement.
 
 If fewer than 30 fresh scenarios exist at offset 40, stop and report insufficient
 fresh coverage; do not reuse the development scenarios.
+
+This pool clarification was frozen after the first cloud preflight stopped with
+`0 < 30` and before any V4 protocol lock or outcome was produced. It corrects a
+partition implementation error and does not use outcome information.
 
 ## Frozen gates
 

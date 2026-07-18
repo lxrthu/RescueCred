@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from environments.toolsandbox.adapter import (
+    ToolSandboxRuntime,
     action_schema_complete,
     canonical_action,
     console_namespace_fingerprint,
@@ -36,6 +37,55 @@ SCHEMAS = [
         },
     }
 ]
+
+
+def test_v4_tiered_pool_preserves_old_prefix_and_has_fresh_holdout():
+    categories = types.SimpleNamespace(
+        NO_DISTRACTION_TOOLS="no_distraction",
+        STATE_DEPENDENCY="state_dependency",
+        MULTIPLE_TOOL_CALL="multiple_tool",
+        SINGLE_USER_TURN="single_user",
+    )
+    runtime = ToolSandboxRuntime.__new__(ToolSandboxRuntime)
+    runtime.ScenarioCategories = categories
+    scenarios = {}
+    common = {categories.MULTIPLE_TOOL_CALL, categories.SINGLE_USER_TURN}
+    for index in range(20):
+        scenarios[f"nd_state_{index:02d}"] = types.SimpleNamespace(
+            categories=common
+            | {categories.NO_DISTRACTION_TOOLS, categories.STATE_DEPENDENCY},
+            starting_context=object(),
+        )
+        scenarios[f"nd_other_{index:02d}"] = types.SimpleNamespace(
+            categories=common | {categories.NO_DISTRACTION_TOOLS},
+            starting_context=object(),
+        )
+        scenarios[f"d_state_{index:02d}"] = types.SimpleNamespace(
+            categories=common | {categories.STATE_DEPENDENCY},
+            starting_context=object(),
+        )
+        scenarios[f"d_other_{index:02d}"] = types.SimpleNamespace(
+            categories=common,
+            starting_context=object(),
+        )
+    runtime.scenarios = lambda: scenarios
+    runtime._agent_tools = lambda context: {
+        "safe": types.SimpleNamespace(__module__="safe.tools")
+    }
+
+    old_pool = runtime.select_scenarios(limit=100, seed=42)
+    expanded = runtime.select_scenarios(
+        limit=100, seed=42, allow_distraction_tools=True
+    )
+    fresh = runtime.select_scenarios(
+        limit=40, seed=42, offset=40, allow_distraction_tools=True
+    )
+
+    assert len(old_pool) == 40
+    assert len(expanded) == 80
+    assert expanded[:40] == old_pool
+    assert len(fresh) == 40
+    assert not ({name for name, _ in old_pool} & {name for name, _ in fresh})
 
 
 def test_intermediate_official_score_must_not_mutate_continuation_state():

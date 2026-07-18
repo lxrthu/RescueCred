@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from environments.toolsandbox import TOOL_SANDBOX_COMMIT
+from environments.toolsandbox import TOOL_SANDBOX_COMMIT, V4_SCENARIO_POOL_PROFILE
 from rescuecredit.toolsandbox_audit import DEFAULT_THRESHOLDS
 from rescuecredit.toolsandbox_credit import LEXICOGRAPHIC_COMPONENT_ORDER
 from rescuecredit.toolsandbox_protocol import (
@@ -40,9 +40,14 @@ def protocol_payload(args: argparse.Namespace, root: Path) -> dict[str, Any]:
     from environments.toolsandbox import ToolSandboxRuntime
 
     runtime = ToolSandboxRuntime()
-    development = runtime.select_scenarios(limit=3, seed=args.seed, offset=0)
+    development = runtime.select_scenarios(
+        limit=3, seed=args.seed, offset=0, allow_distraction_tools=True
+    )
     fresh = runtime.select_scenarios(
-        limit=args.limit, seed=args.seed, offset=args.scenario_offset
+        limit=args.limit,
+        seed=args.seed,
+        offset=args.scenario_offset,
+        allow_distraction_tools=True,
     )
     if len(fresh) < 30:
         raise RuntimeError(
@@ -69,6 +74,7 @@ def protocol_payload(args: argparse.Namespace, root: Path) -> dict[str, Any]:
         "horizon": args.horizon,
         "event_search_steps": args.event_search_steps,
         "credit_mode": "lexicographic_v4",
+        "scenario_pool_profile": V4_SCENARIO_POOL_PROFILE,
         "lexicographic_component_order": list(LEXICOGRAPHIC_COMPONENT_ORDER),
         "atol": 1e-12,
         "thresholds": dict(DEFAULT_THRESHOLDS),

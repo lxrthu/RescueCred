@@ -17,4 +17,4 @@
 | TS002 | ToolSandbox 40-scenario Harness/Shadow audit | READY_CLOUD | natural visible-error repair plus controlled missing-argument signal; no V3.1 training yet |
 | TS003 | ToolSandbox implementation review | DEPLOY_YES | pinned-source review resolved scenario-count, role-boundary, gate-accounting, console-snapshot, and timeout blockers |
 | TS004 | ToolSandbox terminal-credit H8 audit | NEGATIVE_SPARSE | 36 valid controlled; 1 nonzero (2.78%); natural 1 zero-delta; no training |
-| TS005 | V4 lexicographic-regret fresh audit | READY_CLOUD | frozen offset 40, limit 40, H8; independent review DEPLOY YES; sanity first |
+| TS005 | V4 lexicographic-regret fresh audit | READY_CLOUD_REPAIRED | pre-outcome 40-row pool/offset bug fixed with a frozen tiered pool; 19 directed and full-suite tests pass |

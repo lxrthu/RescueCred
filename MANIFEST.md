@@ -110,3 +110,6 @@
 | 2026-07-16 20:54 | /experiment-bridge | refine-logs/ROUTE_A_BOUNDED_TRACKER_20260716_203410.md | implementation | remote-run tracker and validation status |
 | 2026-07-16 20:54 | /experiment-bridge | refine-logs/ROUTE_A_BOUNDED_TRACKER.md | implementation | latest bounded tracker pointer |
 | 2026-07-16 20:54 | /experiment-bridge | dist/PASTE_ROUTE_A_BOUNDED_TO_SERVER.sh | implementation | password-free install, test, and launch bundle |
+| 2026-07-18 23:55 | /experiment-bridge | refine-logs/TOOLSANDBOX_V4_POOL_ERRATUM_20260718.md | preflight repair | documents the pre-outcome tiered scenario-pool correction |
+| 2026-07-18 23:58 | /experiment-bridge | refine-logs/TOOLSANDBOX_V4_POOL_CODE_REVIEW_20260718.md | review | timestamped local-only pre-deploy review of the pool repair |
+| 2026-07-18 23:58 | /experiment-bridge | refine-logs/TOOLSANDBOX_V4_POOL_CODE_REVIEW.md | review | latest ToolSandbox V4 pool-repair review pointer |
