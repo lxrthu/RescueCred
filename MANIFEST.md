@@ -88,6 +88,21 @@
 - `scripts/cloud/run_toolsandbox_signal_audit.sh`: 3-scenario smoke followed by 40-scenario audit.
 - `tests/test_toolsandbox_audit.py`: corruption, worker validation, three-way credit, and gate tests.
 - `docs/TOOLSANDBOX_SIGNAL_AUDIT_CN.md`: cloud commands, output contract, and interpretation limits.
+
+## ToolSandbox V4.1 same-data preference comparison
+
+- `rescuecredit/toolsandbox_preference.py`: public prompt, matched ordering, causal routing, and independent metric recomputation.
+- `scripts/prepare_toolsandbox_v41_preference_data.py`: separates public model inputs from private official outcomes.
+- `scripts/train_toolsandbox_v41_preference.py`: same-event/same-budget Mask versus V4 LoRA preference training.
+- `scripts/evaluate_toolsandbox_v41_preference.py`: fresh candidate scoring with post-scoring official-outcome joins.
+- `scripts/freeze_toolsandbox_v41_preference_protocol.py`: binds training data, untouched evaluation scenarios, model, sources, and thresholds before outcomes.
+- `scripts/check_toolsandbox_v41_preference_gate.py`: independently recomputed integrity and outcome gate.
+- `scripts/cloud/run_toolsandbox_v41_preference_seed42.sh`: two-GPU seed-42 training plus offset-125 fresh evaluation runner.
+- `tests/test_toolsandbox_preference.py`: direction, privacy boundary, matched-budget, metric, gate, and runner-order tests.
+- `refine-logs/TOOLSANDBOX_V41_PREFERENCE_PLAN_20260720.md`: timestamped preregistration record.
+- `refine-logs/TOOLSANDBOX_V41_PREFERENCE_PLAN.md`: latest plan pointer.
+- `refine-logs/TOOLSANDBOX_V41_PREFERENCE_CODE_REVIEW_20260720.md`: timestamped local-only pre-deploy review.
+- `refine-logs/TOOLSANDBOX_V41_PREFERENCE_CODE_REVIEW.md`: latest review pointer.
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW_20260716_191149.md | implementation | timestamped local-only dev evaluation review |
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW.md | implementation | latest dev evaluation review pointer |
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_TRACKER_20260716_191149.md | implementation | timestamped sanity and full dev run tracker |
@@ -119,3 +134,7 @@
 | 2026-07-19 10:00 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_PLAN.md | plan | latest ToolSandbox V4.1 Tool-ID Harness plan pointer |
 | 2026-07-19 10:30 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_CODE_REVIEW_20260719.md | review | timestamped local-only Tool-ID Harness deployment review |
 | 2026-07-19 10:30 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_CODE_REVIEW.md | review | latest ToolSandbox V4.1 review pointer |
+| 2026-07-20 12:00 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_PREFERENCE_PLAN_20260720.md | plan | timestamped same-data Mask versus V4 preference protocol |
+| 2026-07-20 12:00 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_PREFERENCE_PLAN.md | plan | latest ToolSandbox V4.1 preference comparison plan |
+| 2026-07-20 12:30 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_PREFERENCE_CODE_REVIEW_20260720.md | review | local-only review ending seed-42 deploy yes |
+| 2026-07-20 12:30 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_PREFERENCE_CODE_REVIEW.md | review | latest ToolSandbox V4.1 preference review pointer |

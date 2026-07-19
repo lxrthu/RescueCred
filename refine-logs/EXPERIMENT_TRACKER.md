@@ -18,4 +18,5 @@
 | TS003 | ToolSandbox implementation review | DEPLOY_YES | pinned-source review resolved scenario-count, role-boundary, gate-accounting, console-snapshot, and timeout blockers |
 | TS004 | ToolSandbox terminal-credit H8 audit | NEGATIVE_SPARSE | 36 valid controlled; 1 nonzero (2.78%); natural 1 zero-delta; no training |
 | TS005 | V4 lexicographic-regret fresh audit | READY_CLOUD_TIMEOUT_REPAIRED | sanity produced one progress rescue; 180s timeout cascade fixed with frozen 600s ceiling and stateless worker restart; full suite passes |
-| TS006 | V4.1 Tool-ID Harness diagnostic and fresh audit | READY_CLOUD_DIAGNOSTIC | 24 directed and full-suite tests pass; offset-85 fresh audit is hard-blocked until offset-80 diagnostic passes |
+| TS006 | V4.1 Tool-ID Harness diagnostic and fresh audit | DONE_GATE_PASS | 40/40 schema-complete proposals; 33/33 controlled nonzero; natural 3 rescues, 0 harms; worker failures 2.5%; exact snapshots |
+| TS007 | V4.1 same-data Mask vs causal preference seed 42 | READY_CLOUD | `scripts/cloud/run_toolsandbox_v41_preference_seed42.sh`; freezes offset-125 evaluation before two-GPU training |
