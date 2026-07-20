@@ -19,7 +19,7 @@ from scripts.train_toolsandbox_v43_preference import SUPPORTED_PROTOCOL_STATUSES
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--method", choices=("mask", "v43", "v45"), required=True)
+    parser.add_argument("--method", choices=("mask", "v43", "v45", "control", "v46"), required=True)
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--adapter", type=Path, required=True)
     parser.add_argument("--run-summary", type=Path, required=True)

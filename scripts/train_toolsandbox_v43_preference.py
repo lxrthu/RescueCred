@@ -20,7 +20,8 @@ from scripts.train_route_a_preference import (
 
 PROTOCOL_STATUS = "frozen_before_toolsandbox_v43_training"
 V45_PROTOCOL_STATUS = "frozen_before_toolsandbox_v45_training_and_eval_outcomes"
-SUPPORTED_PROTOCOL_STATUSES = {PROTOCOL_STATUS, V45_PROTOCOL_STATUS}
+V46_PROTOCOL_STATUS = "frozen_before_toolsandbox_v46_development_training"
+SUPPORTED_PROTOCOL_STATUSES = {PROTOCOL_STATUS, V45_PROTOCOL_STATUS, V46_PROTOCOL_STATUS}
 
 
 def main() -> None:
