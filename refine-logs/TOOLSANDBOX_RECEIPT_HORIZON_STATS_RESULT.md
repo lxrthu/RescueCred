@@ -1,7 +1,9 @@
 # ToolSandbox receipt-horizon statistical result
 
-**Date:** 2026-07-21  
-**Remote artifact:** `outputs/toolsandbox_receipt_horizon_stats_seed42/statistical_audit.json`  
+**Date:** 2026-07-21
+
+**Remote artifact:** `outputs/toolsandbox_receipt_horizon_stats_seed42/statistical_audit.json`
+
 **Status:** completed; positive routing claim not supported.
 
 ## Paired frozen-task results
