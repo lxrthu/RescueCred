@@ -116,6 +116,21 @@
 - `refine-logs/TOOLSANDBOX_V42_PLAN.md`: latest V4.2 plan pointer.
 - `refine-logs/TOOLSANDBOX_V42_CODE_REVIEW_20260720.md`: timestamped local-only deployment review.
 - `refine-logs/TOOLSANDBOX_V42_CODE_REVIEW.md`: latest V4.2 review pointer.
+
+## ToolSandbox V4.3 multi-prefix anchored comparison
+
+- `scripts/audit_toolsandbox_signal.py`: backward-compatible multi-prefix event mining with distinct event identities and treatment-visible context export.
+- `scripts/prepare_toolsandbox_v43_training_data.py`: causal-diversity gate and strict public/private training-data separation.
+- `scripts/train_toolsandbox_v43_preference.py`: matched class-balanced preference training with a shared reference-margin anchor.
+- `scripts/evaluate_toolsandbox_v43_preference.py`: public-only scoring on known development or frozen confirmation events.
+- `scripts/freeze_toolsandbox_v43_protocol.py`: binds data, scenario identities, model, sources, event sequence, labels, and thresholds before training.
+- `scripts/check_toolsandbox_v43_gate.py`: independently recomputes V4.2-compatible outcomes plus class-conditional margin separation.
+- `scripts/cloud/run_toolsandbox_v43_seed42.sh`: data-gated two-GPU run; offset-165 is called only after the offset-125 development gate passes.
+- `tests/test_toolsandbox_v43.py`: identity compatibility, frozen config, gate, and execution-order regression tests.
+- `refine-logs/TOOLSANDBOX_V43_PLAN_20260720.md`: timestamped frozen V4.3 design.
+- `refine-logs/TOOLSANDBOX_V43_PLAN.md`: latest V4.3 plan pointer.
+- `refine-logs/TOOLSANDBOX_V43_CODE_REVIEW_20260720.md`: timestamped local deployment review.
+- `refine-logs/TOOLSANDBOX_V43_CODE_REVIEW.md`: latest V4.3 review pointer.
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW_20260716_191149.md | implementation | timestamped local-only dev evaluation review |
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW.md | implementation | latest dev evaluation review pointer |
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_TRACKER_20260716_191149.md | implementation | timestamped sanity and full dev run tracker |

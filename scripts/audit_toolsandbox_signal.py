@@ -85,6 +85,9 @@ def _validate_protocol_lock(
         "credit_mode": args.credit_mode,
         "scenario_pool_profile": V4_SCENARIO_POOL_PROFILE,
     }
+    configured_max_events = getattr(args, "max_events_per_scenario", 1)
+    if configured_max_events != 1 or "max_events_per_scenario" in lock:
+        expected["max_events_per_scenario"] = configured_max_events
     for key, value in expected.items():
         if lock.get(key) != value:
             raise ValueError(f"protocol lock mismatch for {key}: {lock.get(key)!r} != {value!r}")
@@ -406,6 +409,7 @@ def _paired_row(
     metadata: Mapping[str, Any],
     credit_mode: str,
     horizon: int,
+    event_nonce: str = "",
 ) -> Dict[str, Any]:
     valid = branch_a.get("valid") is True and branch_b.get("valid") is True
     score_a = (
@@ -442,7 +446,12 @@ def _paired_row(
         raise ValueError(f"unsupported credit mode: {credit_mode}")
     return {
         "event_id": hashlib.sha256(
-            (mode + "\0" + scenario_name).encode("utf-8")
+            (
+                mode
+                + "\0"
+                + scenario_name
+                + (("\0" + event_nonce) if event_nonce else "")
+            ).encode("utf-8")
         ).hexdigest(),
         "scenario_name": scenario_name,
         "task_id_hash": task_hash,
@@ -497,8 +506,19 @@ def main() -> None:
             "controlled or natural treatment point."
         ),
     )
+    parser.add_argument(
+        "--max-events-per-scenario",
+        type=int,
+        default=1,
+        help=(
+            "Retain up to this many distinct treatment points while advancing "
+            "the same reference-free visible prefix. Default 1 preserves V4/V4.1."
+        ),
+    )
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
+    if args.max_events_per_scenario < 1:
+        raise ValueError("max_events_per_scenario must be positive")
 
     started = time.time()
     output = args.output_dir.resolve()
@@ -558,6 +578,7 @@ def main() -> None:
             prefix = runtime.prepare(scenario)
             task_hash = hashlib.sha256(scenario_name.encode("utf-8")).hexdigest()
             treatment_found = False
+            scenario_events = 0
             scenario_schema_complete_proposal = False
             search_steps = min(args.horizon, max(1, args.event_search_steps))
             examined = 0
@@ -647,18 +668,37 @@ def main() -> None:
                             {
                                 "removed_public_required_field": removed,
                                 "reference_free_prefix_steps": prefix_step,
+                                **(
+                                    {
+                                        "treatment_visible_history": runtime.visible_history(
+                                            prefix
+                                        ),
+                                        "treatment_public_tool_schemas": schemas,
+                                    }
+                                    if args.max_events_per_scenario > 1
+                                    else {}
+                                ),
                             },
                             args.credit_mode,
                             args.horizon,
+                            (
+                                f"prefix={prefix_step}:controlled"
+                                if args.max_events_per_scenario > 1
+                                else ""
+                            ),
                         )
                     )
                     treatment_found = True
+                    scenario_events += 1
                 else:
                     proposal_stats["controlled_ineligible"] += 1
 
                 # Natural Harness audit: request B only after A emits a visible
                 # execution error. The prefix and receipt are policy-visible.
-                if natural_probe.exception:
+                if natural_probe.exception and (
+                    args.max_events_per_scenario == 1
+                    or scenario_events < args.max_events_per_scenario
+                ):
                     proposal_stats["visible_execution_errors"] += 1
                     try:
                         repair_response = worker.request(
@@ -706,12 +746,28 @@ def main() -> None:
                                 {
                                     "visible_error": natural_probe.content,
                                     "reference_free_prefix_steps": prefix_step,
+                                    **(
+                                        {
+                                            "treatment_visible_history": runtime.visible_history(
+                                                prefix
+                                            ),
+                                            "treatment_public_tool_schemas": schemas,
+                                        }
+                                        if args.max_events_per_scenario > 1
+                                        else {}
+                                    ),
                                 },
                                 args.credit_mode,
                                 args.horizon,
+                                (
+                                    f"prefix={prefix_step}:natural"
+                                    if args.max_events_per_scenario > 1
+                                    else ""
+                                ),
                             )
                         )
                         treatment_found = True
+                        scenario_events += 1
                     elif repair_response.get("error_type"):
                         worker_failures += 1
                         proposal_stats["repair_invalid"] += 1
@@ -721,7 +777,9 @@ def main() -> None:
                     else:
                         proposal_stats["repair_abstentions"] += 1
 
-                if treatment_found:
+                if treatment_found and args.max_events_per_scenario == 1:
+                    break
+                if scenario_events >= args.max_events_per_scenario:
                     break
                 prefix = natural_probe.context
                 proposal_stats["reference_free_prefix_advances"] += 1
@@ -742,6 +800,7 @@ def main() -> None:
                         "nonzero": nonzero,
                         "prefix_actions_examined": examined,
                         "treatment_found": treatment_found,
+                        "scenario_events": scenario_events,
                     }
                 ),
                 flush=True,
@@ -814,6 +873,7 @@ def main() -> None:
                 "statistics": dict(sorted(proposal_stats.items())),
                 "reference_actions_used": False,
             },
+            "max_events_per_scenario": args.max_events_per_scenario,
             "proposal_coverage": {
                 "schema_complete_scenarios": proposal_stats[
                     "scenarios_with_schema_complete_proposal"
