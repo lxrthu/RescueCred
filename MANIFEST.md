@@ -179,3 +179,27 @@
 | 2026-07-20 12:00 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_PREFERENCE_PLAN.md | plan | latest ToolSandbox V4.1 preference comparison plan |
 | 2026-07-20 12:30 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_PREFERENCE_CODE_REVIEW_20260720.md | review | local-only review ending seed-42 deploy yes |
 | 2026-07-20 12:30 | /experiment-bridge | refine-logs/TOOLSANDBOX_V41_PREFERENCE_CODE_REVIEW.md | review | latest ToolSandbox V4.1 preference review pointer |
+| 2026-07-21 02:06 | /experiment-bridge | rescuecredit/deltaguard_observers.py | implementation | public observer registry and fixed plan construction |
+| 2026-07-21 02:06 | /experiment-bridge | rescuecredit/deltaguard_probe.py | implementation | deterministic acquisition and paired public probing |
+| 2026-07-21 02:06 | /experiment-bridge | rescuecredit/deltaguard_certificate.py | implementation | typed deltas and fail-closed Pareto routing certificate |
+| 2026-07-21 02:06 | /experiment-bridge | rescuecredit/deltaguard_contract.py | implementation | abstention-only contract verifier retained for locked future ablation |
+| 2026-07-21 02:06 | /experiment-bridge | rescuecredit/deltaguard_toolsandbox.py | implementation | normalized public prefix replay and action remapping |
+| 2026-07-21 02:06 | /experiment-bridge | rescuecredit/deltaguard_evaluation.py | implementation | conditional and whole-stream DeltaGuard estimands |
+| 2026-07-21 02:06 | /experiment-bridge | rescuecredit/deltaguard_protocol.py | implementation | frozen source selection, configuration, and identity checks |
+| 2026-07-21 02:06 | /experiment-bridge | rescuecredit/deltaguard_baseline.py | implementation | independently frozen V7 baseline scoring |
+| 2026-07-21 02:06 | /experiment-bridge | scripts/export_toolsandbox_deltaguard_public_bank.py | implementation | physically separated public event bank exporter |
+| 2026-07-21 02:06 | /experiment-bridge | scripts/freeze_toolsandbox_deltaguard_protocol.py | implementation | pre-collection protocol and artifact lock |
+| 2026-07-21 02:06 | /experiment-bridge | scripts/collect_toolsandbox_deltaguard.py | implementation | label-blind isolated ToolSandbox collection |
+| 2026-07-21 02:06 | /experiment-bridge | scripts/evaluate_toolsandbox_deltaguard.py | implementation | post-collection exact Shadow evaluation |
+| 2026-07-21 02:06 | /experiment-bridge | scripts/check_toolsandbox_deltaguard_gate.py | implementation | independent integrity and feasibility gate |
+| 2026-07-21 02:06 | /experiment-bridge | scripts/cloud/run_toolsandbox_deltaguard_seed42.sh | implementation | split-runtime server pipeline |
+| 2026-07-21 02:06 | /experiment-bridge | tests/test_deltaguard.py | implementation | observer, certificate, replay, and duplicate-effect regressions |
+| 2026-07-21 02:06 | /experiment-bridge | tests/test_deltaguard_evaluation.py | implementation | estimand and single-class guard tests |
+| 2026-07-21 02:06 | /experiment-bridge | tests/test_deltaguard_protocol.py | implementation | label-blind source-freeze regression test |
+| 2026-07-21 02:06 | /experiment-bridge | docs/TOOLSANDBOX_DELTAGUARD_CN.md | implementation | Chinese setup, run, and claim-boundary guide |
+| 2026-07-21 02:06 | /experiment-bridge | refine-logs/TOOLSANDBOX_DELTAGUARD_PLAN_20260721_014147.md | implementation | timestamped fixed DeltaGuard experiment plan |
+| 2026-07-21 02:06 | /experiment-bridge | refine-logs/TOOLSANDBOX_DELTAGUARD_PLAN.md | implementation | latest DeltaGuard plan pointer |
+| 2026-07-21 02:06 | /experiment-bridge | refine-logs/TOOLSANDBOX_DELTAGUARD_TRACKER_20260721_014147.md | implementation | timestamped local validation and server-run tracker |
+| 2026-07-21 02:06 | /experiment-bridge | refine-logs/TOOLSANDBOX_DELTAGUARD_TRACKER.md | implementation | latest DeltaGuard tracker pointer |
+| 2026-07-21 02:06 | /experiment-bridge | refine-logs/TOOLSANDBOX_DELTAGUARD_CODE_REVIEW_20260721_020644.md | review | timestamped independent review ending DEPLOY YES |
+| 2026-07-21 02:06 | /experiment-bridge | refine-logs/TOOLSANDBOX_DELTAGUARD_CODE_REVIEW.md | review | latest DeltaGuard deployment review pointer |
