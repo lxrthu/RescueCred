@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 from pathlib import Path
 
 from environments.toolsandbox import TOOL_SANDBOX_COMMIT
@@ -77,12 +76,6 @@ def main() -> None:
         "base_url": v44_lock["base_url"],
         "thinking": v44_lock["thinking"],
     }
-    current_worker_identity = {
-        "provider": os.getenv("TOOLSANDBOX_LLM_PROVIDER", "deepseek"),
-        "model": os.getenv("DEEPSEEK_MODEL", "deepseek-v4-pro"),
-        "base_url": os.getenv("DEEPSEEK_BASE_URL", "https://zhi-api.com/v1"),
-        "thinking": os.getenv("DEEPSEEK_THINKING", "disabled"),
-    }
     checks = {
         "v44_full_protocol_bound": raw_summary.get("protocol_lock_sha256")
         == file_sha256(v44_lock_path),
@@ -99,8 +92,7 @@ def main() -> None:
         == v44_lock.get("source_sha256", {}).get("scripts/toolsandbox_azure_worker.py"),
         "runtime_frozen": current_toolsandbox_runtime_identity(TOOL_SANDBOX_COMMIT)
         == v44_lock.get("toolsandbox_runtime"),
-        "worker_environment_matches_v44": current_worker_identity
-        == worker_identity,
+        "source_worker_identity_bound": all(worker_identity.values()),
     }
     if not all(checks.values()):
         raise RuntimeError(checks)
@@ -138,7 +130,7 @@ def main() -> None:
         "v7_gate_sha256": file_sha256(v7_gate_path),
         "worker_script_sha256": file_sha256(args.worker_script),
         "source_sha256": {path: file_sha256(Path(path)) for path in SOURCE_PATHS},
-        "reference_boundary": "one isolated step; agent-visible history and public schemas only; no official evaluator or hidden database/context export",
+        "reference_boundary": "deterministic replay of frozen agent-visible history, then one isolated A/B step; public schemas only; no live worker, official evaluator, or hidden database/context export",
         "scope": "V8 nested cross-task feasibility using explicit one-step visible state summaries",
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

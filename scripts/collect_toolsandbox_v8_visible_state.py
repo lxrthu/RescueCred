@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
-import os
 import time
 from pathlib import Path
 from typing import Any, Mapping
@@ -18,16 +18,79 @@ from environments.toolsandbox import (
 from rescuecredit.frozen_bank import file_sha256, read_jsonl, write_jsonl
 from rescuecredit.logging import write_json
 from rescuecredit.toolsandbox_protocol import current_toolsandbox_runtime_identity
-from scripts.audit_toolsandbox_signal import Worker, _action_or_none, _worker_payload
-from scripts.audit_toolsandbox_v44_candidates import (
-    _candidate_payload,
-    candidate_values_are_visible,
-)
 from scripts.freeze_toolsandbox_v8_protocol import PROTOCOL_STATUS
 
 
 def _load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _action_from_visible_code(
+    runtime: ToolSandboxRuntime, context: Any, code: str
+) -> dict[str, Any]:
+    tree = ast.parse(code)
+    arguments: dict[str, Any] | None = None
+    execution_name: str | None = None
+    for statement in tree.body:
+        if not isinstance(statement, ast.Assign) or len(statement.targets) != 1:
+            continue
+        target = statement.targets[0]
+        if not isinstance(target, ast.Name) or not isinstance(statement.value, ast.Call):
+            continue
+        if target.id == "_rescuecredit_arguments":
+            call = statement.value
+            if not call.args:
+                continue
+            encoded = ast.literal_eval(call.args[0])
+            decoded = json.loads(encoded)
+            if isinstance(decoded, dict):
+                arguments = decoded
+        elif target.id == "_rescuecredit_result":
+            execution_name = ast.unparse(statement.value.func)
+    if arguments is None or execution_name is None:
+        raise ValueError("V8 could not parse a frozen visible tool call")
+
+    public_to_execution: dict[str, str] = {}
+    for schema in runtime.tool_schemas(context):
+        function = schema.get("function", {})
+        public_name = function.get("name")
+        if isinstance(public_name, str):
+            public_to_execution[public_name] = context.get_execution_facing_tool_name(
+                public_name
+            )
+    matches = [
+        public_name
+        for public_name, candidate in public_to_execution.items()
+        if candidate == execution_name
+    ]
+    if len(matches) != 1:
+        raise ValueError("V8 frozen visible tool name is unavailable or ambiguous")
+    return {"tool": matches[0], "arguments": arguments}
+
+
+def _reconstruct_prefix(
+    runtime: ToolSandboxRuntime,
+    scenario: Any,
+    target_history: list[dict[str, Any]],
+) -> tuple[Any, int]:
+    prefix = runtime.prepare(scenario)
+    replayed = 0
+    while True:
+        current = runtime.visible_history(prefix)
+        if current == target_history:
+            return prefix, replayed
+        if len(current) >= len(target_history) or target_history[: len(current)] != current:
+            raise RuntimeError("V8 frozen treatment history is not replayable from scenario")
+        next_row = target_history[len(current)]
+        if not isinstance(next_row, Mapping):
+            raise RuntimeError("V8 frozen treatment history row is malformed")
+        action = _action_from_visible_code(runtime, prefix, str(next_row.get("content", "")))
+        receipt = runtime.execute(prefix, action)
+        prefix = receipt.context
+        replayed += 1
+        updated = runtime.visible_history(prefix)
+        if target_history[: len(updated)] != updated:
+            raise RuntimeError("V8 deterministic prefix replay diverged from frozen history")
 
 
 def _visible_state_summary(
@@ -56,10 +119,7 @@ def main() -> None:
     parser.add_argument("--protocol-lock", type=Path, required=True)
     parser.add_argument("--raw-events", type=Path, required=True)
     parser.add_argument("--train-file", type=Path, required=True)
-    parser.add_argument("--worker-python", type=Path, required=True)
     parser.add_argument("--worker-script", type=Path, required=True)
-    parser.add_argument("--worker-model")
-    parser.add_argument("--worker-device")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
 
@@ -77,16 +137,6 @@ def main() -> None:
         "toolsandbox_runtime"
     ):
         raise ValueError("V8 ToolSandbox runtime identity mismatch")
-    worker_identity = {
-        "provider": os.getenv("TOOLSANDBOX_LLM_PROVIDER", "deepseek"),
-        "model": os.getenv("DEEPSEEK_MODEL", "deepseek-v4-pro"),
-        "base_url": os.getenv("DEEPSEEK_BASE_URL", "https://zhi-api.com/v1"),
-        "thinking": os.getenv("DEEPSEEK_THINKING", "disabled"),
-    }
-    if worker_identity != protocol.get("worker_identity"):
-        raise ValueError("V8 worker environment drifted from frozen V4.4 identity")
-    if args.worker_model is not None and args.worker_model != worker_identity["model"]:
-        raise ValueError("V8 worker CLI model disagrees with frozen worker identity")
     if not all(
         Path(path).is_file() and file_sha256(Path(path)) == digest
         for path, digest in protocol.get("source_sha256", {}).items()
@@ -96,19 +146,8 @@ def main() -> None:
     raw_by_id = {str(row["event_id"]): row for row in read_jsonl(args.raw_events)}
     train_rows = read_jsonl(args.train_file)
     expected = {str(row["event_id"]): raw_by_id[str(row["event_id"])] for row in train_rows}
-    expected_by_key = {
-        (
-            str(row["scenario_name"]),
-            int(row["reference_free_prefix_steps"]),
-            int(row["candidate_rank"]),
-        ): row
-        for row in expected.values()
-    }
-    if len(expected_by_key) != len(expected):
-        raise ValueError("V8 expected treatment keys are not unique")
-
-    config = protocol["replay_config"]
     runtime = ToolSandboxRuntime()
+    config = protocol["replay_config"]
     selected = runtime.select_scenarios(
         limit=int(config["limit"]),
         seed=int(config["seed"]),
@@ -120,115 +159,68 @@ def main() -> None:
     ]
     if selected_hashes != protocol["scenario_identity"]["fresh_hashes"]:
         raise ValueError("V8 scenario identity mismatch")
+    scenario_by_name = {name: scenario for name, scenario in selected}
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    worker = Worker(
-        args.worker_python.resolve(),
-        args.worker_script.resolve(),
-        args.output_dir / "worker_stderr.log",
-        args.worker_model,
-        args.worker_device,
-        float(config["worker_timeout_sec"]),
-        str(config["harness_interface"]),
-    )
     collected: dict[str, dict[str, Any]] = {}
-    requests = 0
-    try:
-        for scenario_index, (scenario_name, scenario) in enumerate(selected, start=1):
-            prefix = runtime.prepare(scenario)
-            scenario_pairs = 0
-            for prefix_step in range(
-                min(int(config["horizon"]), int(config["event_search_steps"]))
-            ):
-                schemas = runtime.tool_schemas(prefix)
-                requests += 1
-                proposal_response = worker.request(
-                    _worker_payload(
-                        runtime,
-                        prefix,
-                        mode="propose",
-                        remaining_steps=int(config["horizon"]) - prefix_step,
-                    )
-                )
-                proposal_a = _action_or_none(proposal_response)
-                if proposal_a is None:
-                    break
-                if not action_schema_complete(proposal_a, schemas):
-                    raise RuntimeError("V8 proposal A is not schema-complete")
-                probe = runtime.execute(runtime.snapshot(prefix), proposal_a)
-                requests += 1
-                candidate_response = worker.request(
-                    _candidate_payload(
-                        runtime,
-                        prefix,
-                        proposal_a,
-                        int(config["horizon"]) - prefix_step,
-                        int(config["candidate_count"]),
-                    )
-                )
-                candidates = candidate_response.get("actions", [])
-                if not isinstance(candidates, list):
-                    candidates = []
-                visible_history = runtime.visible_history(prefix)
-                supported = [
-                    candidate
-                    for candidate in candidates
-                    if isinstance(candidate, Mapping)
-                    and candidate_values_are_visible(
-                        candidate, visible_history, proposal_a, schemas
-                    )
-                ]
-                for candidate_rank, candidate_b in enumerate(supported):
-                    if scenario_pairs >= int(config["max_pairs_per_scenario"]):
-                        break
-                    key = (scenario_name, prefix_step, candidate_rank)
-                    if not action_schema_complete(candidate_b, schemas):
-                        raise RuntimeError("V8 candidate B is not schema-complete")
-                    frozen = expected_by_key.get(key)
-                    if frozen is not None:
-                        action_a = canonical_action(proposal_a)
-                        action_b = canonical_action(candidate_b)
-                        if action_a != canonical_action(frozen["action_a"]):
-                            raise RuntimeError(f"V8 proposal drift at {key}")
-                        if action_b != canonical_action(frozen["action_b"]):
-                            raise RuntimeError(f"V8 candidate drift at {key}")
-                        if visible_history != frozen["treatment_visible_history"]:
-                            raise RuntimeError(f"V8 treatment history drift at {key}")
-                        event_id = str(frozen["event_id"])
-                        prefix_digest = runtime.context_digest(prefix)
-                        summary_a = _visible_state_summary(runtime, prefix, action_a)
-                        if runtime.context_digest(prefix) != prefix_digest:
-                            raise RuntimeError("V8 A probe mutated the frozen prefix")
-                        summary_b = _visible_state_summary(runtime, prefix, action_b)
-                        if runtime.context_digest(prefix) != prefix_digest:
-                            raise RuntimeError("V8 B probe mutated the frozen prefix")
-                        collected[event_id] = {
-                            "event_id": event_id,
-                            "task_id_hash": str(frozen["task_id_hash"]),
-                            "scenario_name": scenario_name,
-                            "reference_free_prefix_steps": prefix_step,
-                            "candidate_rank": candidate_rank,
-                            "action_a": action_a,
-                            "action_b": action_b,
-                            "state_summary_a": summary_a,
-                            "state_summary_b": summary_b,
-                        }
-                    scenario_pairs += 1
-                if scenario_pairs >= int(config["max_pairs_per_scenario"]):
-                    break
-                prefix = probe.context
-            print(
-                json.dumps(
-                    {
-                        "progress": f"{scenario_index}/{len(selected)}",
-                        "collected": len(collected),
-                        "expected": len(expected),
-                    }
-                ),
-                flush=True,
-            )
-    finally:
-        worker.close()
+    prefix_actions_replayed = 0
+    ordered = sorted(
+        expected.values(),
+        key=lambda row: (
+            str(row["scenario_name"]),
+            int(row["reference_free_prefix_steps"]),
+            int(row["candidate_rank"]),
+        ),
+    )
+    for event_index, frozen in enumerate(ordered, start=1):
+        scenario_name = str(frozen["scenario_name"])
+        scenario = scenario_by_name.get(scenario_name)
+        if scenario is None:
+            raise RuntimeError(f"V8 frozen scenario is unavailable: {scenario_name}")
+        target_history = frozen.get("treatment_visible_history")
+        if not isinstance(target_history, list):
+            raise RuntimeError("V8 frozen event lacks treatment-visible history")
+        prefix, replayed = _reconstruct_prefix(runtime, scenario, target_history)
+        prefix_actions_replayed += replayed
+        schemas = runtime.tool_schemas(prefix)
+        if schemas != frozen.get("treatment_public_tool_schemas"):
+            raise RuntimeError("V8 reconstructed public schemas differ from frozen event")
+        action_a = canonical_action(frozen["action_a"])
+        action_b = canonical_action(frozen["action_b"])
+        if not action_schema_complete(action_a, schemas) or not action_schema_complete(
+            action_b, schemas
+        ):
+            raise RuntimeError("V8 frozen A/B is no longer schema-complete")
+        event_id = str(frozen["event_id"])
+        prefix_digest = runtime.context_digest(prefix)
+        summary_a = _visible_state_summary(runtime, prefix, action_a)
+        if runtime.context_digest(prefix) != prefix_digest:
+            raise RuntimeError("V8 A probe mutated the frozen prefix")
+        summary_b = _visible_state_summary(runtime, prefix, action_b)
+        if runtime.context_digest(prefix) != prefix_digest:
+            raise RuntimeError("V8 B probe mutated the frozen prefix")
+        collected[event_id] = {
+            "event_id": event_id,
+            "task_id_hash": str(frozen["task_id_hash"]),
+            "scenario_name": scenario_name,
+            "reference_free_prefix_steps": int(
+                frozen["reference_free_prefix_steps"]
+            ),
+            "candidate_rank": int(frozen["candidate_rank"]),
+            "action_a": action_a,
+            "action_b": action_b,
+            "state_summary_a": summary_a,
+            "state_summary_b": summary_b,
+        }
+        print(
+            json.dumps(
+                {
+                    "progress": f"{event_index}/{len(ordered)}",
+                    "collected": len(collected),
+                }
+            ),
+            flush=True,
+        )
 
     if set(collected) != set(expected):
         missing = sorted(set(expected) - set(collected))
@@ -241,12 +233,13 @@ def main() -> None:
         "stage": "toolsandbox_v8_one_step_visible_state_collection",
         "events": len(rows),
         "tasks": len({row["task_id_hash"] for row in rows}),
-        "requests": requests,
+        "live_worker_requests": 0,
+        "prefix_actions_replayed": prefix_actions_replayed,
         "event_file_sha256": file_sha256(event_path),
         "raw_events_sha256": file_sha256(args.raw_events),
         "train_file_sha256": file_sha256(args.train_file),
         "protocol_lock_sha256": file_sha256(args.protocol_lock),
-        "worker_identity": worker_identity,
+        "source_worker_identity": protocol["worker_identity"],
         "official_evaluator_called": False,
         "hidden_context_exported": False,
         "visible_outputs": [

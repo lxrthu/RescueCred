@@ -8,7 +8,11 @@ WORKER="$ROOT/scripts/toolsandbox_azure_worker.py"
 V44="$ROOT/outputs/toolsandbox_v44_candidate_diversity_seed42"
 V5="$ROOT/outputs/toolsandbox_v5_causal_router_seed42"
 V7="$ROOT/outputs/toolsandbox_v7_active_shadow_seed42"
-OUT="$ROOT/outputs/toolsandbox_v8_visible_state_seed42"
+OUT="${TOOLSANDBOX_V8_OUT:-$ROOT/outputs/toolsandbox_v8_visible_state_seed42}"
+case "$OUT" in
+  /*) ;;
+  *) OUT="$ROOT/$OUT" ;;
+esac
 LOCK="$OUT/protocol_lock.json"
 COLLECTION="$OUT/collection"
 FEATURES="$OUT/features"
@@ -38,16 +42,6 @@ mkdir -p "$COLLECTION" "$FEATURES" "$MODEL"
   scripts/check_toolsandbox_v8_gate.py
 "$MODEL_PY" -m pytest -q tests/test_toolsandbox_v8.py tests/test_toolsandbox_v7.py
 
-set -a
-source .env
-set +a
-test "${TOOLSANDBOX_LLM_PROVIDER:-}" = "deepseek"
-test -n "${DEEPSEEK_API_KEY:-}"
-export DEEPSEEK_BASE_URL="${DEEPSEEK_BASE_URL:-https://zhi-api.com/v1}"
-export DEEPSEEK_MODEL="${DEEPSEEK_MODEL:-deepseek-v4-pro}"
-export DEEPSEEK_THINKING="${DEEPSEEK_THINKING:-disabled}"
-test "$DEEPSEEK_THINKING" = "disabled"
-
 "$APP_PY" scripts/freeze_toolsandbox_v8_protocol.py \
   --v44-root "$V44" \
   --v5-root "$V5" \
@@ -59,9 +53,7 @@ test "$DEEPSEEK_THINKING" = "disabled"
   --protocol-lock "$LOCK" \
   --raw-events "$V44/full_offset85_h8/candidate_events.jsonl" \
   --train-file "$V44/data/train.jsonl" \
-  --worker-python "$MODEL_PY" \
   --worker-script "$WORKER" \
-  --worker-model "$DEEPSEEK_MODEL" \
   --output-dir "$COLLECTION" | tee "$OUT/collection_console.log"
 
 "$MODEL_PY" scripts/build_toolsandbox_v8_features.py \

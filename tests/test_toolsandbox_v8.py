@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from rescuecredit.toolsandbox_active_shadow_v8 import build_v8_features
+from scripts.collect_toolsandbox_v8_visible_state import _action_from_visible_code
 
 
 def _summary(content, exception=None, after_tool="send"):
@@ -88,7 +89,7 @@ def test_v8_runner_is_one_step_and_reuses_nested_crossfit():
     assert "deployment_ready" not in trainer  # inherited unchanged from reviewed V7
 
 
-def test_v8_freezes_and_rechecks_worker_identity():
+def test_v8_binds_source_worker_but_does_not_call_it_live():
     root = Path(__file__).resolve().parents[1]
     freeze = (root / "scripts/freeze_toolsandbox_v8_protocol.py").read_text(
         encoding="utf-8"
@@ -98,6 +99,44 @@ def test_v8_freezes_and_rechecks_worker_identity():
     )
     for field in ("provider", "model", "base_url", "thinking"):
         assert f'"{field}"' in freeze
-        assert f'"{field}"' in collector
-    assert "worker_environment_matches_v44" in freeze
-    assert "worker environment drifted" in collector
+    assert "source_worker_identity_bound" in freeze
+    assert '"live_worker_requests": 0' in collector
+    assert "Worker(" not in collector
+    assert "worker.request(" not in collector
+
+
+def test_v8_reconstructs_prefix_from_frozen_visible_history():
+    root = Path(__file__).resolve().parents[1]
+    collector = (root / "scripts/collect_toolsandbox_v8_visible_state.py").read_text(
+        encoding="utf-8"
+    )
+    assert "_reconstruct_prefix" in collector
+    assert "_action_from_visible_code" in collector
+    assert 'frozen["action_a"]' in collector
+    assert 'frozen["action_b"]' in collector
+
+
+def test_v8_parses_frozen_visible_tool_call_without_worker():
+    class Context:
+        @staticmethod
+        def get_execution_facing_tool_name(name):
+            assert name == "send_message"
+            return "scrambled_send"
+
+    class Runtime:
+        @staticmethod
+        def tool_schemas(context):
+            assert isinstance(context, Context)
+            return [{"function": {"name": "send_message"}}]
+
+    code = "\n".join(
+        [
+            '_rescuecredit_arguments = json.loads(\'{"recipient":"+123"}\')',
+            "_rescuecredit_result = scrambled_send(**_rescuecredit_arguments)",
+            "print(repr(_rescuecredit_result))",
+        ]
+    )
+    assert _action_from_visible_code(Runtime(), Context(), code) == {
+        "tool": "send_message",
+        "arguments": {"recipient": "+123"},
+    }
