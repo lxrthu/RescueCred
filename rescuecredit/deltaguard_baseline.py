@@ -62,7 +62,9 @@ def compute_v7_baseline_scores(
         pending_ids.append(event_id)
     if features:
         values = probe_probabilities(torch.tensor(features, dtype=torch.float32), head)
-        for event_id, value in zip(pending_ids, values, strict=True):
+        if len(pending_ids) != len(values):
+            raise ValueError("V7 baseline prediction length mismatch")
+        for event_id, value in zip(pending_ids, values):
             scores[event_id] = float(value)
             sources[event_id] = "lineage_bound_frozen_v7_checkpoint"
     return scores, sources

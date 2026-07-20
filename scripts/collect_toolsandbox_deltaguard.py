@@ -46,7 +46,10 @@ def main() -> None:
         raise ValueError("invalid DeltaGuard protocol")
     verify_protocol_source_identity(protocol)
     public_paths = [Path(row["path"]) for row in protocol["public_sources"]]
-    for path, frozen in zip(public_paths, protocol["public_sources"], strict=True):
+    frozen_public_sources = protocol["public_sources"]
+    if len(public_paths) != len(frozen_public_sources):
+        raise ValueError("DeltaGuard public source binding length mismatch")
+    for path, frozen in zip(public_paths, frozen_public_sources):
         if not path.is_file() or file_sha256(path) != frozen["sha256"]:
             raise ValueError(f"DeltaGuard public source drift: {path}")
     for path, digest in protocol.get("source_sha256", {}).items():

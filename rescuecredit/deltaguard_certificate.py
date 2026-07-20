@@ -103,17 +103,20 @@ def build_delta_certificate(evidence: Mapping[str, Any]) -> dict[str, Any]:
             }
         )
 
+    if len(known_a) != len(known_b):
+        raise ValueError("paired public delta length mismatch")
+    paired_deltas = list(zip(known_a, known_b))
     a_dominates = bool(
         known_a
         and not required_unknown
-        and all(left >= right for left, right in zip(known_a, known_b, strict=True))
-        and any(left > right for left, right in zip(known_a, known_b, strict=True))
+        and all(left >= right for left, right in paired_deltas)
+        and any(left > right for left, right in paired_deltas)
     )
     b_dominates = bool(
         known_a
         and not required_unknown
-        and all(right >= left for left, right in zip(known_a, known_b, strict=True))
-        and any(right > left for left, right in zip(known_a, known_b, strict=True))
+        and all(right >= left for left, right in paired_deltas)
+        and any(right > left for left, right in paired_deltas)
     )
     if a_dominates:
         relation, score, witness = "a_dominates_b", 1.0, witness_a
