@@ -14,12 +14,12 @@ from rescuecredit.toolsandbox_preference import (
     summarize_evaluation_rows,
 )
 from scripts.train_route_a_preference import mean_completion_logprob
-from scripts.train_toolsandbox_v43_preference import PROTOCOL_STATUS
+from scripts.train_toolsandbox_v43_preference import SUPPORTED_PROTOCOL_STATUSES
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--method", choices=("mask", "v43"), required=True)
+    parser.add_argument("--method", choices=("mask", "v43", "v45"), required=True)
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--adapter", type=Path, required=True)
     parser.add_argument("--run-summary", type=Path, required=True)
@@ -34,8 +34,8 @@ def main() -> None:
 
     run = json.loads(args.run_summary.read_text(encoding="utf-8"))
     protocol = json.loads(args.protocol_lock.read_text(encoding="utf-8"))
-    if protocol.get("status") != PROTOCOL_STATUS:
-        raise ValueError("invalid frozen V4.3 protocol")
+    if protocol.get("status") not in SUPPORTED_PROTOCOL_STATUSES:
+        raise ValueError("invalid frozen anchored-learner protocol")
     if run.get("method") != args.method or run.get("status") != "completed":
         raise ValueError("run summary method/status mismatch")
     if run.get("protocol_lock_sha256") != file_sha256(args.protocol_lock):
@@ -124,7 +124,7 @@ def main() -> None:
     write_jsonl(result_path, results)
     summary = {
         "status": "completed",
-        "stage": "toolsandbox_v43_preference_evaluation",
+        "stage": "toolsandbox_anchored_preference_evaluation",
         "evaluation_role": args.evaluation_role,
         "method": args.method,
         "model": str(args.model),

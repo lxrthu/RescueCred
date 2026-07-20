@@ -25,6 +25,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--audit-root", type=Path, required=True)
     parser.add_argument("--protocol-lock", type=Path, required=True)
+    parser.add_argument("--data-role", choices=("train", "evaluation"), default="train")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
 
@@ -171,6 +172,7 @@ def main() -> None:
     manifest = {
         "status": "frozen" if passed else "rejected",
         "stage": "toolsandbox_v44_candidate_diversity_data",
+        "role": args.data_role,
         "passed": passed,
         "events": len(public_rows),
         "tasks": len(task_counts),

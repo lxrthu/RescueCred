@@ -19,11 +19,13 @@ from scripts.train_route_a_preference import (
 
 
 PROTOCOL_STATUS = "frozen_before_toolsandbox_v43_training"
+V45_PROTOCOL_STATUS = "frozen_before_toolsandbox_v45_training_and_eval_outcomes"
+SUPPORTED_PROTOCOL_STATUSES = {PROTOCOL_STATUS, V45_PROTOCOL_STATUS}
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--method", choices=("mask", "v43"), required=True)
+    parser.add_argument("--method", choices=("mask", "v43", "v45"), required=True)
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--train-file", type=Path, required=True)
     parser.add_argument("--protocol-lock", type=Path, required=True)
@@ -48,10 +50,10 @@ def main() -> None:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     protocol = json.loads(args.protocol_lock.read_text(encoding="utf-8"))
-    if protocol.get("status") != PROTOCOL_STATUS:
-        raise ValueError("invalid ToolSandbox V4.3 protocol status")
+    if protocol.get("status") not in SUPPORTED_PROTOCOL_STATUSES:
+        raise ValueError("invalid ToolSandbox anchored-learner protocol status")
     if args.method not in protocol.get("methods", []):
-        raise ValueError("method is absent from the frozen V4.3 comparison")
+        raise ValueError("method is absent from the frozen anchored comparison")
     config = {
         "seed": args.seed,
         "epochs": args.epochs,
@@ -67,10 +69,14 @@ def main() -> None:
         "lora_alpha": args.lora_alpha,
         "fp32": args.fp32,
         "preference_weight": "unit_direction",
-        "sampling": "identical_multi_prefix_class_balanced",
+        "sampling": (
+            "identical_candidate_diversity_class_balanced"
+            if protocol.get("status") == V45_PROTOCOL_STATUS
+            else "identical_multi_prefix_class_balanced"
+        ),
     }
     if config != protocol.get("config"):
-        raise ValueError("training CLI does not match the frozen V4.3 config")
+        raise ValueError("training CLI does not match the frozen anchored config")
     if file_sha256(args.train_file) != protocol.get("train_sha256"):
         raise ValueError("training file does not match the frozen protocol")
     base_model_sha256 = directory_sha256(args.model)
@@ -81,7 +87,7 @@ def main() -> None:
         Path(path).is_file() and file_sha256(Path(path)) == expected
         for path, expected in source_hashes.items()
     ):
-        raise ValueError("V4.3 source identity changed after protocol freeze")
+        raise ValueError("anchored learner source identity changed after protocol freeze")
 
     rows = read_jsonl(args.train_file)
     if len(rows) != int(protocol["train_events"]):
@@ -227,7 +233,11 @@ def main() -> None:
     tokenizer.save_pretrained(adapter_dir)
     summary = {
         "status": "completed",
-        "stage": "toolsandbox_v43_multi_prefix_anchored_training",
+        "stage": (
+            "toolsandbox_v45_candidate_diversity_anchored_training"
+            if args.method == "v45" or protocol.get("status") == V45_PROTOCOL_STATUS
+            else "toolsandbox_v43_multi_prefix_anchored_training"
+        ),
         "method": args.method,
         "model": str(args.model),
         "base_model_sha256": base_model_sha256,
