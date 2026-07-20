@@ -19,4 +19,5 @@
 | TS004 | ToolSandbox terminal-credit H8 audit | NEGATIVE_SPARSE | 36 valid controlled; 1 nonzero (2.78%); natural 1 zero-delta; no training |
 | TS005 | V4 lexicographic-regret fresh audit | READY_CLOUD_TIMEOUT_REPAIRED | sanity produced one progress rescue; 180s timeout cascade fixed with frozen 600s ceiling and stateless worker restart; full suite passes |
 | TS006 | V4.1 Tool-ID Harness diagnostic and fresh audit | DONE_GATE_PASS | 40/40 schema-complete proposals; 33/33 controlled nonzero; natural 3 rescues, 0 harms; worker failures 2.5%; exact snapshots |
-| TS007 | V4.1 same-data Mask vs causal preference seed 42 | READY_CLOUD | `scripts/cloud/run_toolsandbox_v41_preference_seed42.sh`; freezes offset-125 evaluation before two-GPU training |
+| TS007 | V4.1 same-data Mask vs causal preference seed 42 | DONE_NEGATIVE_DIRECTIONAL_ONLY | 33 held-out causal events; no selection flips or accuracy gain, but all 3 reverse margins moved in the correct direction (-0.0064, -0.0175, -0.0182) |
+| TS008 | V4.2 balanced-margin Mask vs causal preference seed 42 | READY_CLOUD | Same 36 training events and 108 presentations; exact 18/18 class balance per epoch; identical absolute-margin objective; offset-125 development gate before frozen offset-165 confirmation |

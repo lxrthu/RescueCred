@@ -103,6 +103,19 @@
 - `refine-logs/TOOLSANDBOX_V41_PREFERENCE_PLAN.md`: latest plan pointer.
 - `refine-logs/TOOLSANDBOX_V41_PREFERENCE_CODE_REVIEW_20260720.md`: timestamped local-only pre-deploy review.
 - `refine-logs/TOOLSANDBOX_V41_PREFERENCE_CODE_REVIEW.md`: latest review pointer.
+
+## ToolSandbox V4.2 balanced-margin comparison
+
+- `scripts/train_toolsandbox_v42_preference.py`: identical class-balanced event sequence and absolute-margin objective for Mask and V4.2.
+- `scripts/evaluate_toolsandbox_v42_preference.py`: public-only candidate scoring for development and confirmation roles.
+- `scripts/freeze_toolsandbox_v42_protocol.py`: binds the offset-85 training source, known offset-125 development artifacts, untouched offset-165 identity, model, source, sequence, and thresholds before training.
+- `scripts/check_toolsandbox_v42_gate.py`: independently recomputed development/confirmation integrity and outcome gates.
+- `scripts/cloud/run_toolsandbox_v42_seed42.sh`: two-GPU training, zero-API development gate, then conditionally authorized offset-165 confirmation.
+- `tests/test_toolsandbox_v42.py`: balance, direction, objective, gate, and execution-order regression tests.
+- `refine-logs/TOOLSANDBOX_V42_PLAN_20260720.md`: timestamped frozen V4.2 design.
+- `refine-logs/TOOLSANDBOX_V42_PLAN.md`: latest V4.2 plan pointer.
+- `refine-logs/TOOLSANDBOX_V42_CODE_REVIEW_20260720.md`: timestamped local-only deployment review.
+- `refine-logs/TOOLSANDBOX_V42_CODE_REVIEW.md`: latest V4.2 review pointer.
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW_20260716_191149.md | implementation | timestamped local-only dev evaluation review |
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW.md | implementation | latest dev evaluation review pointer |
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_TRACKER_20260716_191149.md | implementation | timestamped sanity and full dev run tracker |
