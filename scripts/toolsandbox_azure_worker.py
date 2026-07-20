@@ -138,6 +138,47 @@ def _validate(
     return result, None
 
 
+def _validate_candidate_set(
+    parsed: Optional[Mapping[str, Any]],
+    schemas: List[Mapping[str, Any]],
+    harness_interface: str,
+    proposal_a: Optional[Mapping[str, Any]],
+    candidate_count: int,
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    if not isinstance(parsed, Mapping):
+        return None, "invalid_json"
+    candidates = parsed.get("candidates")
+    if not isinstance(candidates, list):
+        return None, "candidates_not_list"
+    if not 1 <= len(candidates) <= candidate_count:
+        return None, "candidate_count_invalid"
+    proposal_key = (
+        json.dumps(proposal_a, ensure_ascii=False, sort_keys=True)
+        if isinstance(proposal_a, Mapping)
+        else None
+    )
+    actions: List[Dict[str, Any]] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        validated, error = _validate(
+            candidate if isinstance(candidate, Mapping) else None,
+            schemas,
+            allow_abstain=False,
+            harness_interface=harness_interface,
+        )
+        if validated is None or not isinstance(validated.get("action"), Mapping):
+            return None, "candidate_" + str(error)
+        action = dict(validated["action"])
+        key = json.dumps(action, ensure_ascii=False, sort_keys=True)
+        if key == proposal_key:
+            return None, "candidate_matches_proposal"
+        if key in seen:
+            return None, "duplicate_candidate"
+        seen.add(key)
+        actions.append(action)
+    return {"actions": actions}, None
+
+
 def _complete(
     client: AzureOpenAIAdapter, messages: List[Dict[str, Any]]
 ) -> Tuple[Optional[str], Optional[str]]:
@@ -162,12 +203,16 @@ def _request(
     if not isinstance(schemas, list):
         return {"action": None, "error_type": "schemas_not_list"}
     allow_abstain = mode == "repair"
+    candidate_count = int(request.get("candidate_count", 3))
+    if mode == "diversify" and not 1 <= candidate_count <= 4:
+        return {"actions": [], "error_type": "candidate_count_out_of_range"}
     visible: Dict[str, Any] = {
         "mode": mode,
         "task_messages": request.get("history", []),
         "proposal_a": request.get("proposal_a"),
         "visible_receipt": request.get("visible_receipt"),
         "remaining_steps": request.get("remaining_steps", 0),
+        "candidate_count": candidate_count if mode == "diversify" else None,
     }
     if harness_interface == "tool_id_v2":
         visible["public_tool_catalog"], _ = _indexed_tool_catalog(schemas)
@@ -182,6 +227,14 @@ def _request(
             "Do not invent values and do not use hidden task labels."
         )
         output = action_output + ' or {"abstain":true}'
+    elif mode == "diversify":
+        task = (
+            "Given proposal A, generate up to the requested number of distinct, "
+            "schema-valid alternative next actions. Every argument value must be "
+            "supported by the visible task or receipts. Alternatives may use a "
+            "different public tool, but must not copy proposal A. Do not rank them."
+        )
+        output = '{"candidates":[' + action_output + "]}"
     else:
         task = (
             "Choose exactly one next tool call that advances the visible user request. "
@@ -206,9 +259,18 @@ def _request(
     raw, transport_error = _complete(client, messages)
     if raw is None:
         return {"action": None, "error_type": transport_error}
-    result, validation_error = _validate(
-        _decode(raw), schemas, allow_abstain, harness_interface
-    )
+    if mode == "diversify":
+        result, validation_error = _validate_candidate_set(
+            _decode(raw),
+            schemas,
+            harness_interface,
+            request.get("proposal_a"),
+            candidate_count,
+        )
+    else:
+        result, validation_error = _validate(
+            _decode(raw), schemas, allow_abstain, harness_interface
+        )
     if result is not None:
         return result
     repaired_raw, repair_error = _complete(
@@ -228,9 +290,18 @@ def _request(
     )
     if repaired_raw is None:
         return {"action": None, "error_type": repair_error, "format_repair_attempted": True}
-    result, validation_error = _validate(
-        _decode(repaired_raw), schemas, allow_abstain, harness_interface
-    )
+    if mode == "diversify":
+        result, validation_error = _validate_candidate_set(
+            _decode(repaired_raw),
+            schemas,
+            harness_interface,
+            request.get("proposal_a"),
+            candidate_count,
+        )
+    else:
+        result, validation_error = _validate(
+            _decode(repaired_raw), schemas, allow_abstain, harness_interface
+        )
     if result is None:
         return {
             "action": None,

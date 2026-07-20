@@ -131,6 +131,19 @@
 - `refine-logs/TOOLSANDBOX_V43_PLAN.md`: latest V4.3 plan pointer.
 - `refine-logs/TOOLSANDBOX_V43_CODE_REVIEW_20260720.md`: timestamped local deployment review.
 - `refine-logs/TOOLSANDBOX_V43_CODE_REVIEW.md`: latest V4.3 review pointer.
+
+## ToolSandbox V4.4 reference-free candidate-diversity audit
+
+- `scripts/toolsandbox_azure_worker.py`: adds deterministic Tool-ID candidate-set generation and strict duplicate/schema validation.
+- `scripts/freeze_toolsandbox_v44_candidate_protocol.py`: binds the failed V4.3 evidence, training-only scenario identity, candidate configuration, source/runtime identity, and untouched evaluation boundary.
+- `scripts/audit_toolsandbox_v44_candidates.py`: compares the policy proposal with distinct both-valid alternatives under paired official Shadow continuations.
+- `scripts/prepare_toolsandbox_v44_candidate_data.py`: enforces the bidirectional signal gate and writes separated public, private, and outcome-free training artifacts.
+- `scripts/cloud/run_toolsandbox_v44_candidate_audit.sh`: freezes sanity/full protocols, runs a three-scenario sanity first, then the full 40-scenario data audit.
+- `tests/test_toolsandbox_v44.py`: candidate validation, visible-value provenance, threshold, and runner-order regression tests.
+- `refine-logs/TOOLSANDBOX_V44_PLAN_20260720.md`: timestamped frozen V4.4 signal-audit design.
+- `refine-logs/TOOLSANDBOX_V44_PLAN.md`: latest V4.4 plan pointer.
+- `refine-logs/TOOLSANDBOX_V44_CODE_REVIEW_20260720.md`: timestamped local-only deployment review.
+- `refine-logs/TOOLSANDBOX_V44_CODE_REVIEW.md`: latest V4.4 review pointer.
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW_20260716_191149.md | implementation | timestamped local-only dev evaluation review |
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_CODE_REVIEW.md | implementation | latest dev evaluation review pointer |
 | 2026-07-16 19:11 | /experiment-bridge | refine-logs/ROUTE_A_APPWORLD_DEV_TRACKER_20260716_191149.md | implementation | timestamped sanity and full dev run tracker |
