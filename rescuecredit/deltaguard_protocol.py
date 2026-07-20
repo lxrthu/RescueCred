@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 from rescuecredit.deltaguard_observers import (
+    action_pair_family,
     build_observer_plan,
     plan_family,
     plan_structure_payload,
@@ -92,15 +93,18 @@ def public_event_projection(row: Mapping[str, Any]) -> dict[str, Any] | None:
         return None
     if action_a == action_b:
         return None
+    public_schemas = [schema for schema in schemas if isinstance(schema, Mapping)]
     plan = build_observer_plan(
         action_a=action_a,
         action_b=action_b,
-        schemas=[schema for schema in schemas if isinstance(schema, Mapping)],
+        schemas=public_schemas,
         instruction=visible_instruction(
             [item for item in history if isinstance(item, Mapping)]
         ),
     )
-    family = plan_family(plan)
+    family = plan_family(plan) or action_pair_family(
+        action_a, action_b, public_schemas
+    )
     if family is None:
         return None
     return {

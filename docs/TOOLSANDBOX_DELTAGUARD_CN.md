@@ -7,8 +7,8 @@ DeltaGuard 不训练新模型。它冻结原 Policy、Harness 和 V7 receipt bas
 
 1. 重放部署可见前缀；
 2. 从同一前缀隔离执行 A/B；
-3. 对两边运行完全相同的公开只读 observer；
-4. 根据 typed delta 和 Pareto dominance 决定是否恢复 A；
+3. 比较两边显式 action receipt，并运行完全相同的公开只读 observer；
+4. 根据 receipt validity、typed delta 和 Pareto dominance 决定是否恢复 A；
 5. 未知、冲突、重放失败一律保持 B。
 
 Runner 要求事先生成只含 allowlist 字段的 `public_events.jsonl`；它不会在同一次
@@ -25,6 +25,11 @@ official evaluator、reference action 或隐藏数据库。原 raw bank 只在 c
 - reminders：`search_reminder`。
 
 工具名被 scramble 时，registry 使用公开 schema description 识别能力。
+
+对于 `search_messages`、`search_reminder` 等不改变状态的读操作，V2 使用 action
+receipt 本身作为保守证据：只有一边明确执行成功而另一边出现非幂等异常时才形成
+优势；两边都成功、异常含 `already/unchanged/no change` 或证据冲突时一律弃权并
+保持 B。该规则不判断语义相关性，也不读取 reference action。
 
 ## 一次性准备物理隔离的 public bank
 

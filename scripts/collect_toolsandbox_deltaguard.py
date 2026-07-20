@@ -10,6 +10,7 @@ from typing import Any, Mapping
 from environments.toolsandbox import ToolSandboxRuntime
 from rescuecredit.deltaguard_certificate import build_delta_certificate
 from rescuecredit.deltaguard_observers import (
+    action_pair_family,
     build_observer_plan,
     plan_family,
     plan_structure_payload,
@@ -113,7 +114,10 @@ def main() -> None:
                     [row for row in history if isinstance(row, Mapping)]
                 ),
             )
-            if plan_family(plan) != frozen["family"]:
+            replayed_family = plan_family(plan) or action_pair_family(
+                action_a, action_b, schemas
+            )
+            if replayed_family != frozen["family"]:
                 raise RuntimeError("observer family changed during public replay")
             if len(plan) != int(frozen["plan_predicates"]):
                 raise RuntimeError("observer predicate count changed during public replay")
@@ -126,6 +130,7 @@ def main() -> None:
                 action_b=action_b,
                 plan=plan,
             )
+            evidence["receipt_family"] = replayed_family
             certificate = build_delta_certificate(evidence)
             observer_calls += (
                 len(evidence["pre_observations"])

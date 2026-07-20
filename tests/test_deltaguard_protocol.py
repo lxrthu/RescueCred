@@ -1,6 +1,6 @@
 import copy
 
-from rescuecredit.deltaguard_protocol import freeze_source_stream
+from rescuecredit.deltaguard_protocol import freeze_source_stream, public_event_projection
 
 from tests.test_deltaguard import SCHEMAS, _actions
 
@@ -43,3 +43,19 @@ def test_source_freeze_is_label_blind():
     assert selected_a == selected_b
     assert audit_a == audit_b
     assert audit_a["labels_inspected"] is False
+
+
+def test_receipt_only_search_pair_has_public_projection():
+    row = _row("receipt-only", "reverse_preference")
+    row["action_a"] = {
+        "tool": "search_messages",
+        "arguments": {"content": "hello"},
+    }
+    row["action_b"] = {
+        "tool": "search_messages",
+        "arguments": {"content": "goodbye"},
+    }
+    projection = public_event_projection(row)
+    assert projection is not None
+    assert projection["family"] == "messaging"
+    assert projection["plan_predicates"] == 0

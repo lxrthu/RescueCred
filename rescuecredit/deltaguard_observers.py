@@ -134,6 +134,45 @@ def action_role(
     return _EXACT_ROLES.get(tool)
 
 
+def action_pair_family(
+    action_a: Mapping[str, Any],
+    action_b: Mapping[str, Any],
+    schemas: Sequence[Mapping[str, Any]],
+) -> str | None:
+    """Infer a broad public family without inspecting either branch outcome."""
+
+    role_families = {
+        "get_cellular": "settings",
+        "set_cellular": "settings",
+        "get_wifi": "settings",
+        "set_wifi": "settings",
+        "get_location_service": "settings",
+        "set_location_service": "settings",
+        "get_low_battery": "settings",
+        "set_low_battery": "settings",
+        "send_message": "messaging",
+        "search_messages": "messaging",
+        "add_contact": "contacts",
+        "modify_contact": "contacts",
+        "remove_contact": "contacts",
+        "search_contacts": "contacts",
+        "add_reminder": "reminders",
+        "modify_reminder": "reminders",
+        "remove_reminder": "reminders",
+        "search_reminder": "reminders",
+    }
+    families = {
+        role_families[role]
+        for action in (action_a, action_b)
+        for role in (action_role(action, schemas),)
+        if role in role_families
+    }
+    for preferred in ("messaging", "reminders", "settings", "contacts"):
+        if preferred in families:
+            return preferred
+    return None
+
+
 def _stable_id(payload: Mapping[str, Any]) -> str:
     encoded = json.dumps(
         payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from rescuecredit.deltaguard_certificate import build_delta_certificate
 from rescuecredit.deltaguard_contract import apply_contract_abstention
 from rescuecredit.deltaguard_observers import (
+    action_pair_family,
     build_observer_plan,
     public_role_map,
 )
@@ -230,3 +231,61 @@ def test_public_structure_digest_normalizes_replayed_ids_and_timestamps():
         "creation_timestamp": 1_730_000_000.0,
     }
     assert public_structure_digest(left) == public_structure_digest(right)
+
+
+def test_receipt_only_pair_is_family_eligible_and_routes_only_on_explicit_error():
+    action_a = {
+        "tool": "search_messages",
+        "arguments": {"content": "hello"},
+    }
+    action_b = {
+        "tool": "search_messages",
+        "arguments": {"content": "goodbye"},
+    }
+    assert action_pair_family(action_a, action_b, SCHEMAS) == "messaging"
+    evidence = {
+        "action_hash_a": "a",
+        "action_hash_b": "b",
+        "observer_plan": [],
+        "pre_observations": [],
+        "receipt_family": "messaging",
+        "branch_a": {
+            "action_receipt": {"exception": None, "value_hash": "success"},
+            "post_observations": [],
+        },
+        "branch_b": {
+            "action_receipt": {
+                "exception": "ValueError: missing required argument",
+                "value_hash": "failure",
+            },
+            "post_observations": [],
+        },
+        "prefix_unchanged": True,
+    }
+    certificate = build_delta_certificate(evidence)
+    assert certificate["version"] == "public-paired-delta-v2"
+    assert certificate["relation"] == "a_dominates_b"
+    assert certificate["route_to_a"] is True
+
+
+def test_benign_receipt_exception_forces_abstention_without_observers():
+    evidence = {
+        "observer_plan": [],
+        "pre_observations": [],
+        "receipt_family": "settings",
+        "branch_a": {
+            "action_receipt": {"exception": None, "value_hash": "a"},
+            "post_observations": [],
+        },
+        "branch_b": {
+            "action_receipt": {
+                "exception": "ValueError: already in requested state",
+                "value_hash": "b",
+            },
+            "post_observations": [],
+        },
+        "prefix_unchanged": True,
+    }
+    certificate = build_delta_certificate(evidence)
+    assert certificate["required_unknown"] is True
+    assert certificate["route_to_a"] is False

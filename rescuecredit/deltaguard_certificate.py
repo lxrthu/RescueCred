@@ -8,6 +8,18 @@ from rescuecredit.deltaguard_observers import ObserverPredicate
 UNKNOWN = "unknown"
 
 
+def _receipt_quality(result: Mapping[str, Any]) -> int | str:
+    """Score only explicit execution validity; never infer task correctness."""
+
+    exception = result.get("exception")
+    if not exception:
+        return 1
+    text = str(exception).casefold()
+    if any(token in text for token in ("already", "unchanged", "no change")):
+        return UNKNOWN
+    return 0
+
+
 def _matches(row: Mapping[str, Any], target: Mapping[str, Any]) -> bool:
     return all(row.get(key) == value for key, value in target.items())
 
@@ -57,8 +69,6 @@ def _by_predicate(rows: Sequence[Mapping[str, Any]]) -> dict[str, Mapping[str, A
 
 def build_delta_certificate(evidence: Mapping[str, Any]) -> dict[str, Any]:
     plan = [ObserverPredicate.from_dict(row) for row in evidence.get("observer_plan", [])]
-    if not plan:
-        raise ValueError("cannot certify an empty observer plan")
     pre = _by_predicate(evidence.get("pre_observations", []))
     post_a = _by_predicate(evidence.get("branch_a", {}).get("post_observations", []))
     post_b = _by_predicate(evidence.get("branch_b", {}).get("post_observations", []))
@@ -72,6 +82,37 @@ def build_delta_certificate(evidence: Mapping[str, Any]) -> dict[str, Any]:
     known_b: list[int] = []
     witness_a: list[str] = []
     witness_b: list[str] = []
+    receipt_a = evidence.get("branch_a", {}).get("action_receipt", {})
+    receipt_b = evidence.get("branch_b", {}).get("action_receipt", {})
+    quality_a = _receipt_quality(receipt_a)
+    quality_b = _receipt_quality(receipt_b)
+    receipt_known = quality_a != UNKNOWN and quality_b != UNKNOWN
+    receipt_required = not plan
+    required_unknown = receipt_required and not receipt_known
+    receipt_predicate_id = "receipt:explicit_execution_validity"
+    if receipt_known:
+        known_a.append(int(quality_a))
+        known_b.append(int(quality_b))
+        if int(quality_a) > int(quality_b):
+            witness_a.append(receipt_predicate_id)
+        elif int(quality_b) > int(quality_a):
+            witness_b.append(receipt_predicate_id)
+    rows.append(
+        {
+            "predicate_id": receipt_predicate_id,
+            "family": str(evidence.get("receipt_family") or "execution"),
+            "required": receipt_required,
+            "pre": None,
+            "post_a": quality_a,
+            "post_b": quality_b,
+            "delta_a": quality_a,
+            "delta_b": quality_b,
+            "pre_value_hash": None,
+            "a_value_hash": receipt_a.get("value_hash"),
+            "b_value_hash": receipt_b.get("value_hash"),
+            "evidence_scope": "explicit action receipt exception only",
+        }
+    )
     for predicate in plan:
         pre_value = extract_value(pre[predicate.predicate_id], predicate)
         value_a = extract_value(post_a[predicate.predicate_id], predicate)
@@ -125,7 +166,7 @@ def build_delta_certificate(evidence: Mapping[str, Any]) -> dict[str, Any]:
     else:
         relation, score, witness = "incomparable", 0.5, []
     return {
-        "version": "public-paired-delta-v1",
+        "version": "public-paired-delta-v2",
         "action_hash_a": evidence.get("action_hash_a"),
         "action_hash_b": evidence.get("action_hash_b"),
         "relation": relation,
@@ -133,7 +174,7 @@ def build_delta_certificate(evidence: Mapping[str, Any]) -> dict[str, Any]:
         "route_to_a": bool(score == 1.0),
         "required_unknown": required_unknown,
         "known_predicates": len(known_a),
-        "total_predicates": len(plan),
+        "total_predicates": len(rows),
         "witness_predicates": witness,
         "predicates": rows,
         "prefix_unchanged": evidence.get("prefix_unchanged") is True,
