@@ -39,7 +39,7 @@ export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
 "$MODEL_PY" scripts/freeze_toolsandbox_goal_query_pilot.py \
   --public-events "$PUBLIC_BANK" \
   --public-bank-manifest "$PUBLIC_MANIFEST" \
-  --target-events 30 --minimum-events 20 --seed 42 \
+  --target-events 30 --minimum-events 12 --seed 42 \
   --output "$OUT/protocol_lock.json" \
   2>&1 | tee "$OUT/freeze.log"
 

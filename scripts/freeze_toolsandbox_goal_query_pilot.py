@@ -58,7 +58,7 @@ def main() -> None:
     parser.add_argument("--public-events", type=Path, nargs="+", required=True)
     parser.add_argument("--public-bank-manifest", type=Path, required=True)
     parser.add_argument("--target-events", type=int, default=30)
-    parser.add_argument("--minimum-events", type=int, default=20)
+    parser.add_argument("--minimum-events", type=int, default=12)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -196,8 +196,8 @@ def main() -> None:
         ),
         "gate": {
             "min_events": args.minimum_events,
-            "min_rescue_events": 5,
-            "min_reverse_events": 5,
+            "min_rescue_events": 3,
+            "min_reverse_events": 3,
             "max_empirical_rescue_drop": 0.02,
             "min_reverse_recall": 0.20,
             "min_query_incremental_reverse_hits": 1,

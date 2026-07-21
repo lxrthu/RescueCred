@@ -19,7 +19,7 @@ remain physically unavailable until evaluation.
 
 ## Pilot gate
 
-- at least 20 events, including at least 5 Rescue and 5 Reverse;
+- at least 12 events, including at least 3 Rescue and 3 Reverse;
 - empirical Rescue drop at most 2%;
 - Reverse recall at least 20%;
 - at least one Reverse hit added specifically by a real query beyond schema;
@@ -28,3 +28,10 @@ remain physically unavailable until evaluation.
 This is an applicability-conditioned feasibility pilot. Passing does not make
 a formal risk or paper-facing claim; it only authorizes a fresh task-disjoint
 confirmation with deployment-rate accounting.
+
+The original engineering preflight requested 20 events. Before any label was
+read, the public-only freezer found exactly 16 eligible events among 370 public
+events. The minimum was therefore reduced to 12 and the per-class coverage
+minimum to 3. This is a sample-availability repair only; outcome thresholds are
+unchanged, all 16 eligible events are collected, and the pilot remains
+non-confirmatory.

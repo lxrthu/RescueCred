@@ -244,3 +244,4 @@
 | 2026-07-21 16:30 | /run-experiment | tests/test_goal_directed_query.py | validation | schema, query witness, and fail-closed regressions |
 | 2026-07-21 16:30 | /run-experiment | refine-logs/GOAL_DIRECTED_ACTIVE_SHADOW_PILOT_PLAN_20260721.md | plan | fixed Goal-Directed ActiveShadow Pilot 0 protocol |
 | 2026-07-21 16:30 | /run-experiment | refine-logs/GOAL_DIRECTED_ACTIVE_SHADOW_PILOT_PLAN.md | plan | latest Goal-Directed ActiveShadow pilot pointer |
+| 2026-07-21 16:50 | /monitor-experiment | refine-logs/GOAL_DIRECTED_ACTIVE_SHADOW_PILOT_ERRATUM_20260721.md | pre-label repair | records the 16-event public eligibility ceiling and reduced non-confirmatory minimum |
