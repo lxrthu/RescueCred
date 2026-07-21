@@ -2,6 +2,8 @@
 
 最新完整计划见：`refine-logs/EDITCREDIT_EXPERIMENT_PLAN_20260721_151030.md`。
 
+GPU 运行前的完整性勘误见：`refine-logs/EDITCREDIT_EXPERIMENT_PLAN_ERRATUM_20260721_154254.md`。
+
 当前只启动两个阶段：
 
 1. B0：CPU 梯度归属测试，要求干预事件对 A 的 assisted-return 梯度严格为零，并且只更新 A/B 的 changed fields。

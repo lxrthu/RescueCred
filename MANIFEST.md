@@ -249,3 +249,17 @@
 | 2026-07-21 15:10 | /experiment-plan | refine-logs/EDITCREDIT_EXPERIMENT_PLAN.md | implementation | latest EditCredit experiment plan pointer |
 | 2026-07-21 15:10 | /experiment-plan | refine-logs/EDITCREDIT_EXPERIMENT_TRACKER_20260721_151030.md | implementation | timestamped EditCredit run tracker |
 | 2026-07-21 15:10 | /experiment-plan | refine-logs/EDITCREDIT_EXPERIMENT_TRACKER.md | implementation | latest EditCredit tracker pointer |
+| 2026-07-21 15:42 | /experiment-bridge | rescuecredit/edit_credit.py | implementation | EditCredit AST diff, production objective, firewall, symmetrization, and constrained calibration |
+| 2026-07-21 15:42 | /experiment-bridge | scripts/audit_editcredit_gradients.py | validation | pre-GPU autograd ownership hard gate |
+| 2026-07-21 15:42 | /experiment-bridge | scripts/freeze_toolsandbox_editcredit_protocol.py | implementation | V4.4 lineage-bound task cross-fit protocol freeze |
+| 2026-07-21 15:42 | /experiment-bridge | scripts/train_toolsandbox_editcredit.py | implementation | matched-budget full-action and edit-local learners |
+| 2026-07-21 15:42 | /experiment-bridge | scripts/evaluate_toolsandbox_editcredit.py | implementation | score-first label-later fold evaluator |
+| 2026-07-21 15:42 | /experiment-bridge | scripts/check_toolsandbox_editcredit_gate.py | validation | independent frozen-bank OOF and calibration gate rebuild |
+| 2026-07-21 15:42 | /experiment-bridge | scripts/cloud/run_toolsandbox_editcredit_seed42.sh | implementation | two-GPU five-fold seed-42 runner |
+| 2026-07-21 15:42 | /experiment-bridge | tests/test_edit_credit.py | validation | edit ownership, risk calibration, and split tests |
+| 2026-07-21 15:42 | /experiment-bridge | tests/test_editcredit_gate.py | validation | end-to-end independent gate rebuild test |
+| 2026-07-21 15:42 | /experiment-bridge | refine-logs/EDITCREDIT_EXPERIMENT_PLAN_ERRATUM_20260721_154254.md | implementation | pre-GPU source-position metric and integrity erratum |
+| 2026-07-21 15:42 | /experiment-bridge | refine-logs/EDITCREDIT_IMPLEMENTATION_RESULTS_20260721_154254.md | implementation | timestamped local implementation result boundary |
+| 2026-07-21 15:42 | /experiment-bridge | refine-logs/EDITCREDIT_IMPLEMENTATION_RESULTS.md | implementation | latest EditCredit implementation results pointer |
+| 2026-07-21 15:46 | /experiment-bridge | refine-logs/EDITCREDIT_CODE_REVIEW_20260721_154622.md | review | three-pass independent review ending DEPLOY YES |
+| 2026-07-21 15:46 | /experiment-bridge | refine-logs/EDITCREDIT_CODE_REVIEW.md | review | latest EditCredit deployment review pointer |
