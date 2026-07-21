@@ -272,3 +272,15 @@
 | 2026-07-21 16:20 | /experiment-bridge | refine-logs/EDITCREDIT_EFFICIENCY_CODE_REVIEW.md | review | latest efficiency experiment deployment review pointer |
 | 2026-07-21 16:20 | /experiment-bridge | refine-logs/EDITCREDIT_EFFICIENCY_IMPLEMENTATION_RESULTS_20260721_162005.md | implementation | timestamped local validation and claim boundary |
 | 2026-07-21 16:20 | /experiment-bridge | refine-logs/EDITCREDIT_EFFICIENCY_IMPLEMENTATION_RESULTS.md | implementation | latest efficiency implementation result pointer |
+| 2026-07-21 21:04 | /experiment-bridge | refine-logs/COUNTERFACTUAL_CREDIT_REPLAY_PLAN_20260721_204520.md | plan | frozen retrospective credit-leakage diagnostic protocol |
+| 2026-07-21 21:04 | /experiment-bridge | refine-logs/COUNTERFACTUAL_CREDIT_REPLAY_PLAN.md | plan | latest retrospective credit-replay plan pointer |
+| 2026-07-21 21:04 | /experiment-bridge | rescuecredit/counterfactual_credit_replay.py | implementation | credit firewall, fixed-propensity replay, task bootstrap, and diagnostic metrics |
+| 2026-07-21 21:04 | /experiment-bridge | scripts/freeze_toolsandbox_counterfactual_credit_replay.py | implementation | lineage-bound historical RAPG replay protocol freeze |
+| 2026-07-21 21:04 | /experiment-bridge | scripts/run_toolsandbox_counterfactual_credit_replay.py | implementation | CPU replay and parseable artifact writer |
+| 2026-07-21 21:04 | /experiment-bridge | scripts/check_toolsandbox_counterfactual_credit_replay.py | validation | independent recomputation and fixed diagnostic Gate |
+| 2026-07-21 21:04 | /experiment-bridge | scripts/cloud/run_toolsandbox_counterfactual_credit_replay_seed42.sh | implementation | fail-closed server runner under ten-minute budget |
+| 2026-07-21 21:04 | /experiment-bridge | tests/test_counterfactual_credit_replay.py | validation | controlled oracle, bootstrap, propensity, and runner tests |
+| 2026-07-21 21:04 | /experiment-bridge | refine-logs/COUNTERFACTUAL_CREDIT_REPLAY_CODE_REVIEW_20260721_210431.md | review | two-pass independent review ending DEPLOY YES for retrospective diagnostic |
+| 2026-07-21 21:04 | /experiment-bridge | refine-logs/COUNTERFACTUAL_CREDIT_REPLAY_CODE_REVIEW.md | review | latest credit-replay code-review pointer |
+| 2026-07-21 21:04 | /experiment-bridge | refine-logs/COUNTERFACTUAL_CREDIT_REPLAY_IMPLEMENTATION_RESULTS_20260721_210431.md | implementation | local validation and strict result boundary |
+| 2026-07-21 21:04 | /experiment-bridge | refine-logs/COUNTERFACTUAL_CREDIT_REPLAY_IMPLEMENTATION_RESULTS.md | implementation | latest credit-replay implementation result pointer |
