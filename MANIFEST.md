@@ -284,3 +284,20 @@
 | 2026-07-21 21:04 | /experiment-bridge | refine-logs/COUNTERFACTUAL_CREDIT_REPLAY_CODE_REVIEW.md | review | latest credit-replay code-review pointer |
 | 2026-07-21 21:04 | /experiment-bridge | refine-logs/COUNTERFACTUAL_CREDIT_REPLAY_IMPLEMENTATION_RESULTS_20260721_210431.md | implementation | local validation and strict result boundary |
 | 2026-07-21 21:04 | /experiment-bridge | refine-logs/COUNTERFACTUAL_CREDIT_REPLAY_IMPLEMENTATION_RESULTS.md | implementation | latest credit-replay implementation result pointer |
+| 2026-07-21 23:00 | /experiment-plan | refine-logs/COMPENSATION_TRAP_EXPERIMENT_PLAN_20260721_230022.md | plan | frozen paper-evidence plan for fresh confirmation, collision audit, and reusable benchmark |
+| 2026-07-21 23:00 | /experiment-plan | refine-logs/COMPENSATION_TRAP_EXPERIMENT_PLAN.md | plan | latest Compensation Trap plan pointer |
+| 2026-07-21 23:00 | /experiment-plan | refine-logs/COMPENSATION_TRAP_EXPERIMENT_TRACKER_20260721_230022.md | tracker | compact execution order and stop gates |
+| 2026-07-21 23:00 | /experiment-plan | refine-logs/COMPENSATION_TRAP_EXPERIMENT_TRACKER.md | tracker | latest Compensation Trap tracker pointer |
+| 2026-07-21 23:27 | /experiment-bridge | rescuecredit/compensation_trap.py | implementation | public-only collision signatures, label-blind mutual nearest neighbors, shared package validation |
+| 2026-07-21 23:27 | /experiment-bridge | scripts/build_compensation_trap_benchmark.py | implementation | official-credit-recomputed public/private benchmark builder |
+| 2026-07-21 23:27 | /experiment-bridge | scripts/verify_compensation_trap_benchmark.py | validation | clean-room hashes, schema, statistics, task split, and release-boundary verifier |
+| 2026-07-21 23:27 | /experiment-bridge | scripts/audit_compensation_trap_collisions.py | analysis | exact and approximate cross-task opposing-label collision Gate |
+| 2026-07-21 23:27 | /experiment-bridge | scripts/freeze_toolsandbox_compensation_confirmation.py | implementation | label-blind offset-205 freshness seal and full historical inventory binding |
+| 2026-07-21 23:27 | /experiment-bridge | scripts/check_toolsandbox_compensation_confirmation.py | validation | official-credit recomputation, task bootstrap, missingness, and oracle-headroom Gate |
+| 2026-07-21 23:27 | /experiment-bridge | scripts/cloud/run_compensation_trap_cpu_seed42.sh | implementation | CPU historical benchmark and collision runner |
+| 2026-07-21 23:27 | /experiment-bridge | scripts/cloud/run_toolsandbox_compensation_confirmation_seed42.sh | implementation | sealed 13-scenario fresh Exact Shadow runner |
+| 2026-07-21 23:27 | /experiment-bridge | tests/test_compensation_trap.py | validation | collision leakage, official credit, package tamper, split, and runner regressions |
+| 2026-07-21 23:27 | /experiment-bridge | refine-logs/COMPENSATION_TRAP_CODE_REVIEW_20260721_232708.md | review | two-pass independent review ending DEPLOY YES |
+| 2026-07-21 23:27 | /experiment-bridge | refine-logs/COMPENSATION_TRAP_CODE_REVIEW.md | review | latest Compensation Trap code review pointer |
+| 2026-07-21 23:27 | /experiment-bridge | refine-logs/COMPENSATION_TRAP_IMPLEMENTATION_RESULTS_20260721_232708.md | implementation | local validation and result boundary |
+| 2026-07-21 23:27 | /experiment-bridge | refine-logs/COMPENSATION_TRAP_IMPLEMENTATION_RESULTS.md | implementation | latest Compensation Trap implementation pointer |
