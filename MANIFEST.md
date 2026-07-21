@@ -230,3 +230,9 @@
 | 2026-07-21 13:53 | /experiment-bridge | refine-logs/RAPG_PILOT0_CODE_REVIEW.md | review | latest RAPG preflight review pointer |
 | 2026-07-21 13:53 | /experiment-bridge | refine-logs/RAPG_PILOT0_INITIAL_RESULTS_20260721_135357.md | implementation | timestamped local sanity result and claim boundary |
 | 2026-07-21 13:53 | /experiment-bridge | refine-logs/RAPG_PILOT0_INITIAL_RESULTS.md | implementation | latest RAPG preflight initial result pointer |
+| 2026-07-21 14:30 | /analyze-results | rescuecredit/rapg_stability.py | analysis | fixed task bootstrap, leave-one-task-out, and concentration audit |
+| 2026-07-21 14:30 | /analyze-results | scripts/analyze_toolsandbox_rapg_task_stability.py | analysis | frozen-artifact RAPG stability and matched-cost audit |
+| 2026-07-21 14:30 | /analyze-results | scripts/cloud/run_toolsandbox_rapg_task_stability_seed42.sh | analysis | server entrypoint for the fixed seed-42 audit |
+| 2026-07-21 14:30 | /analyze-results | tests/test_rapg_stability.py | validation | deterministic robust and concentrated synthetic cases |
+| 2026-07-21 14:30 | /analyze-results | refine-logs/RAPG_TASK_STABILITY_AUDIT_PLAN_20260721.md | analysis | frozen post-gate audit protocol and claim boundary |
+| 2026-07-21 14:30 | /analyze-results | refine-logs/RAPG_TASK_STABILITY_AUDIT_PLAN.md | analysis | latest RAPG task-stability audit pointer |
