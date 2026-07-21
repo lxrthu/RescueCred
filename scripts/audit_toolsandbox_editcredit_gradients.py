@@ -167,7 +167,7 @@ def main() -> None:
     class_index: Counter[str] = Counter()
     forward_calls = 0
 
-    for row in rows:
+    for event_index, row in enumerate(rows, start=1):
         decision = str(row["decision"])
         swap = bool(class_index[decision] % 2)
         class_index[decision] += 1
@@ -192,17 +192,18 @@ def main() -> None:
                 )
                 for edit in canonical_action_edits(row["action_a"], row["action_b"])
             ]
-        policy_margins = []
-        reference_margins = []
+        policy_margins: list[float] = []
+        reference_margins: list[float] = []
         model.zero_grad(set_to_none=True)
         for local_prompt, completion_a, completion_b in specs:
-            logp_a = mean_completion_logprob(
-                model, tokenizer, local_prompt, completion_a, args.max_length, device
-            )
-            logp_b = mean_completion_logprob(
-                model, tokenizer, local_prompt, completion_b, args.max_length, device
-            )
-            policy_margins.append(logp_b - logp_a)
+            with torch.no_grad():
+                logp_a = mean_completion_logprob(
+                    model, tokenizer, local_prompt, completion_a, args.max_length, device
+                )
+                logp_b = mean_completion_logprob(
+                    model, tokenizer, local_prompt, completion_b, args.max_length, device
+                )
+                policy_margins.append(float(logp_b - logp_a))
             with torch.no_grad(), model.disable_adapter():
                 ref_a = mean_completion_logprob(
                     model, tokenizer, local_prompt, completion_a, args.max_length, device
@@ -210,10 +211,19 @@ def main() -> None:
                 ref_b = mean_completion_logprob(
                     model, tokenizer, local_prompt, completion_b, args.max_length, device
                 )
-            reference_margins.append((ref_b - ref_a).detach())
+            reference_margins.append(float(ref_b - ref_a))
             forward_calls += 4
-        policy_margin = torch.stack(policy_margins).mean()
-        reference_margin = torch.stack(reference_margins).mean()
+        policy_margin = torch.tensor(
+            sum(policy_margins) / len(policy_margins),
+            dtype=torch.float32,
+            device=device,
+            requires_grad=True,
+        )
+        reference_margin = torch.tensor(
+            sum(reference_margins) / len(reference_margins),
+            dtype=torch.float32,
+            device=device,
+        )
         loss, *_ = edit_credit_objective(
             policy_margin,
             reference_margin,
@@ -223,7 +233,23 @@ def main() -> None:
             target_margin=float(protocol["config"]["target_margin"]),
             reference_anchor_coef=float(protocol["config"]["reference_anchor_coef"]),
         )
-        loss.backward()
+        (margin_derivative,) = torch.autograd.grad(loss, policy_margin)
+        completion_coefficient = margin_derivative.detach() / len(specs)
+        # Recompute and backpropagate one completion at a time. This is exactly
+        # dL/d(mean margin) * d(mean margin)/d(theta), but never retains graphs
+        # for multiple fields or both candidates simultaneously.
+        for local_prompt, completion_a, completion_b in specs:
+            logp_a = mean_completion_logprob(
+                model, tokenizer, local_prompt, completion_a, args.max_length, device
+            )
+            (-completion_coefficient * logp_a).backward()
+            del logp_a
+            logp_b = mean_completion_logprob(
+                model, tokenizer, local_prompt, completion_b, args.max_length, device
+            )
+            (completion_coefficient * logp_b).backward()
+            del logp_b
+            forward_calls += 2
         sketch, gradient_norm = _gradient_countsketch(parameters, maps, args.buckets)
         if not math.isfinite(gradient_norm):
             raise RuntimeError("non-finite gradient norm")
@@ -239,6 +265,18 @@ def main() -> None:
                 "swap_candidates": swap if args.method == "editcredit" else None,
             }
         )
+        if event_index == 1 or event_index % 5 == 0 or event_index == len(rows):
+            print(
+                json.dumps(
+                    {
+                        "method": args.method,
+                        "progress": f"{event_index}/{len(rows)}",
+                        "max_cuda_memory_gib": torch.cuda.max_memory_allocated()
+                        / (1024**3),
+                    }
+                ),
+                flush=True,
+            )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     sketches_path = args.output_dir / "gradient_sketches.jsonl"
@@ -266,6 +304,7 @@ def main() -> None:
         "source_sha256": source_hashes,
         "sketches_sha256": file_sha256(sketches_path),
         "wall_time_sec": time.time() - started,
+        "max_cuda_memory_gib": torch.cuda.max_memory_allocated() / (1024**3),
         "claim_boundary": "method-specific objective gradient-noise diagnostic; not a same-estimand unbiased variance comparison",
     }
     write_json(args.output_dir / "summary.json", summary)

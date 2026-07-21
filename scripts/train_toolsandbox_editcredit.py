@@ -185,8 +185,8 @@ def main() -> None:
             prompt = str(row["prompt"])
             action_a, action_b = row["action_a"], row["action_b"]
             model.train()
-            margins = []
-            reference_margins = []
+            margins: list[float] = []
+            reference_margins: list[float] = []
             edit_paths: list[str] = []
             if args.method == "full_action":
                 specs = [("/action", prompt, canonical_completion(action_a), canonical_completion(action_b))]
@@ -202,13 +202,14 @@ def main() -> None:
                     for edit in canonical_action_edits(action_a, action_b)
                 ]
             for path, local_prompt, completion_a, completion_b in specs:
-                logp_a = mean_completion_logprob(
-                    model, tokenizer, local_prompt, completion_a, args.max_length, device
-                )
-                logp_b = mean_completion_logprob(
-                    model, tokenizer, local_prompt, completion_b, args.max_length, device
-                )
-                margin = logp_b - logp_a
+                with torch.no_grad():
+                    logp_a = mean_completion_logprob(
+                        model, tokenizer, local_prompt, completion_a, args.max_length, device
+                    )
+                    logp_b = mean_completion_logprob(
+                        model, tokenizer, local_prompt, completion_b, args.max_length, device
+                    )
+                    margins.append(float(logp_b - logp_a))
                 cache_key = json.dumps(
                     [row["event_id"], path, swap, completion_a, completion_b],
                     ensure_ascii=False,
@@ -223,13 +224,19 @@ def main() -> None:
                             model, tokenizer, local_prompt, completion_b, args.max_length, device
                         )
                     reference_cache[cache_key] = float((ref_b - ref_a).detach())
-                margins.append(margin)
-                reference_margins.append(
-                    torch.tensor(reference_cache[cache_key], dtype=margin.dtype, device=device)
-                )
+                reference_margins.append(reference_cache[cache_key])
                 edit_paths.append(path)
-            policy_margin = torch.stack(margins).mean()
-            reference_margin = torch.stack(reference_margins).mean()
+            policy_margin = torch.tensor(
+                sum(margins) / len(margins),
+                dtype=torch.float32,
+                device=device,
+                requires_grad=True,
+            )
+            reference_margin = torch.tensor(
+                sum(reference_margins) / len(reference_margins),
+                dtype=torch.float32,
+                device=device,
+            )
             loss, dpo_loss, absolute_loss, anchor_loss = edit_credit_objective(
                 policy_margin,
                 reference_margin,
@@ -239,7 +246,23 @@ def main() -> None:
                 target_margin=args.target_margin,
                 reference_anchor_coef=args.reference_anchor_coef,
             )
-            (loss / args.gradient_accumulation).backward()
+            (margin_derivative,) = torch.autograd.grad(loss, policy_margin)
+            completion_coefficient = (
+                margin_derivative.detach()
+                / args.gradient_accumulation
+                / len(specs)
+            )
+            for _, local_prompt, completion_a, completion_b in specs:
+                logp_a = mean_completion_logprob(
+                    model, tokenizer, local_prompt, completion_a, args.max_length, device
+                )
+                (-completion_coefficient * logp_a).backward()
+                del logp_a
+                logp_b = mean_completion_logprob(
+                    model, tokenizer, local_prompt, completion_b, args.max_length, device
+                )
+                (completion_coefficient * logp_b).backward()
+                del logp_b
             accumulated += 1
             presentations += 1
             decision_counter[decision] += 1

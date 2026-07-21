@@ -305,3 +305,52 @@ def test_countsketch_is_not_periodic_and_initialization_hash_is_sensitive():
     parameter.data[0] += 1.0
     second = _trainable_parameter_sha256([("adapter", parameter)])
     assert first != second
+
+
+def test_streamed_margin_backward_matches_joint_graph():
+    torch = pytest.importorskip("torch")
+
+    def completions(parameter):
+        return [
+            (parameter[0].square(), parameter[0] * parameter[1]),
+            (parameter[1].sin(), parameter.sum().square()),
+        ]
+
+    direct_parameter = torch.tensor([0.2, -0.4], requires_grad=True)
+    direct_pairs = completions(direct_parameter)
+    direct_margin = torch.stack([right - left for left, right in direct_pairs]).mean()
+    direct_loss, *_ = edit_credit_objective(
+        direct_margin,
+        torch.tensor(0.1),
+        decision="rescue_preference",
+        beta=1.0,
+        absolute_margin_coef=1.0,
+        target_margin=0.05,
+        reference_anchor_coef=0.25,
+    )
+    direct_loss.backward()
+
+    streamed_parameter = torch.tensor([0.2, -0.4], requires_grad=True)
+    with torch.no_grad():
+        detached_pairs = completions(streamed_parameter)
+        detached_margin = torch.stack(
+            [right - left for left, right in detached_pairs]
+        ).mean()
+    margin_probe = detached_margin.detach().clone().requires_grad_(True)
+    streamed_loss, *_ = edit_credit_objective(
+        margin_probe,
+        torch.tensor(0.1),
+        decision="rescue_preference",
+        beta=1.0,
+        absolute_margin_coef=1.0,
+        target_margin=0.05,
+        reference_anchor_coef=0.25,
+    )
+    (derivative,) = torch.autograd.grad(streamed_loss, margin_probe)
+    coefficient = derivative.detach() / 2
+    for left, right in completions(streamed_parameter):
+        (-coefficient * left).backward()
+        (coefficient * right).backward()
+    assert streamed_parameter.grad.tolist() == pytest.approx(
+        direct_parameter.grad.tolist(), abs=1e-6
+    )
