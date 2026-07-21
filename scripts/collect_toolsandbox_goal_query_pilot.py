@@ -46,9 +46,9 @@ def main() -> None:
         if not source.is_file() or file_sha256(source) != digest:
             raise ValueError(f"goal-query source drift: {path}")
     public_paths = [Path(row["path"]) for row in protocol["public_sources"]]
-    for path, frozen in zip(
-        public_paths, protocol["public_sources"], strict=True
-    ):
+    if len(public_paths) != len(protocol["public_sources"]):
+        raise ValueError("goal-query public source binding length mismatch")
+    for path, frozen in zip(public_paths, protocol["public_sources"]):
         if not path.is_file() or file_sha256(path) != frozen["sha256"]:
             raise ValueError(f"goal-query public source drift: {path}")
     public_by_id = {
