@@ -211,3 +211,22 @@
 | 2026-07-21 09:50 | /experiment-bridge | tests/test_deltaguard_goal_contract.py | implementation | goal grounding, receipt matching, and fail-closed certificate tests |
 | 2026-07-21 10:09 | /experiment-bridge | refine-logs/TOOLSANDBOX_GOAL_CONTRACT_CODE_REVIEW_20260721_100910.md | review | timestamped Goal Contract review ending DEPLOY YES |
 | 2026-07-21 10:09 | /experiment-bridge | refine-logs/TOOLSANDBOX_GOAL_CONTRACT_CODE_REVIEW.md | review | latest Goal Contract deployment review pointer |
+| 2026-07-21 12:10 | /research-refine | refine-logs/FINAL_PROPOSAL.md | proposal | final RAPG action-substitution proposal, READY for Pilot 0 |
+| 2026-07-21 12:10 | /research-refine | refine-logs/REVIEW_SUMMARY.md | review | five-round strict review summary and evidence gate |
+| 2026-07-21 12:10 | /research-refine | refine-logs/REFINEMENT_REPORT.md | report | refinement history from adaptive AIPW to RAPG |
+| 2026-07-21 12:10 | /research-refine | refine-logs/score-history.md | review | round-by-round scores ending 9.10 READY |
+| 2026-07-21 12:10 | /research-refine | refine-logs/REFINE_STATE.json | state | completed research-refine state |
+| 2026-07-21 12:18 | /experiment-bridge | refine-logs/RAPG_PILOT0_PLAN_20260721_121821.md | implementation | timestamped RAPG gradient-reconstruction pilot plan |
+| 2026-07-21 12:18 | /experiment-bridge | refine-logs/RAPG_PILOT0_PLAN.md | implementation | latest RAPG Pilot 0 plan pointer |
+| 2026-07-21 12:18 | /experiment-bridge | refine-logs/RAPG_PILOT0_TRACKER_20260721_121821.md | implementation | timestamped RAPG Pilot 0 tracker |
+| 2026-07-21 12:18 | /experiment-bridge | refine-logs/RAPG_PILOT0_TRACKER.md | implementation | latest RAPG Pilot 0 tracker pointer |
+| 2026-07-21 12:18 | /experiment-bridge | idea-stage/docs/research_contract_20260721_121821.md | implementation | timestamped RAPG research contract |
+| 2026-07-21 12:18 | /experiment-bridge | idea-stage/docs/research_contract.md | implementation | latest RAPG research contract |
+| 2026-07-21 12:42 | /experiment-bridge | refine-logs/RAPG_PILOT0_PLAN_20260721_124250.md | implementation | corrected candidate-selector surrogate preflight plan |
+| 2026-07-21 12:42 | /experiment-bridge | refine-logs/RAPG_PILOT0_PLAN.md | implementation | latest corrected RAPG preflight plan pointer |
+| 2026-07-21 12:42 | /experiment-bridge | refine-logs/RAPG_PILOT0_TRACKER_20260721_124250.md | implementation | corrected RAPG preflight tracker |
+| 2026-07-21 12:42 | /experiment-bridge | refine-logs/RAPG_PILOT0_TRACKER.md | implementation | latest corrected RAPG preflight tracker pointer |
+| 2026-07-21 13:53 | /experiment-bridge | refine-logs/RAPG_PILOT0_CODE_REVIEW_20260721_135357.md | review | timestamped independent review ending DEPLOY YES for surrogate preflight |
+| 2026-07-21 13:53 | /experiment-bridge | refine-logs/RAPG_PILOT0_CODE_REVIEW.md | review | latest RAPG preflight review pointer |
+| 2026-07-21 13:53 | /experiment-bridge | refine-logs/RAPG_PILOT0_INITIAL_RESULTS_20260721_135357.md | implementation | timestamped local sanity result and claim boundary |
+| 2026-07-21 13:53 | /experiment-bridge | refine-logs/RAPG_PILOT0_INITIAL_RESULTS.md | implementation | latest RAPG preflight initial result pointer |
