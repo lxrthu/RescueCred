@@ -236,3 +236,11 @@
 | 2026-07-21 14:30 | /analyze-results | tests/test_rapg_stability.py | validation | deterministic robust and concentrated synthetic cases |
 | 2026-07-21 14:30 | /analyze-results | refine-logs/RAPG_TASK_STABILITY_AUDIT_PLAN_20260721.md | analysis | frozen post-gate audit protocol and claim boundary |
 | 2026-07-21 14:30 | /analyze-results | refine-logs/RAPG_TASK_STABILITY_AUDIT_PLAN.md | analysis | latest RAPG task-stability audit pointer |
+| 2026-07-21 16:30 | /run-experiment | rescuecredit/goal_directed_query.py | implementation | public-schema proof and one-query hard-precondition verifier |
+| 2026-07-21 16:30 | /run-experiment | scripts/freeze_toolsandbox_goal_query_pilot.py | implementation | label-blind applicability-conditioned Pilot 0 freeze |
+| 2026-07-21 16:30 | /run-experiment | scripts/collect_toolsandbox_goal_query_pilot.py | implementation | prefix-only read-query collection without A/B execution |
+| 2026-07-21 16:30 | /run-experiment | scripts/evaluate_toolsandbox_goal_query_pilot.py | implementation | exact-Shadow feasibility evaluation and fixed gate |
+| 2026-07-21 16:30 | /run-experiment | scripts/cloud/run_toolsandbox_goal_query_pilot_seed42.sh | implementation | split-runtime server runner for the minimal query pilot |
+| 2026-07-21 16:30 | /run-experiment | tests/test_goal_directed_query.py | validation | schema, query witness, and fail-closed regressions |
+| 2026-07-21 16:30 | /run-experiment | refine-logs/GOAL_DIRECTED_ACTIVE_SHADOW_PILOT_PLAN_20260721.md | plan | fixed Goal-Directed ActiveShadow Pilot 0 protocol |
+| 2026-07-21 16:30 | /run-experiment | refine-logs/GOAL_DIRECTED_ACTIVE_SHADOW_PILOT_PLAN.md | plan | latest Goal-Directed ActiveShadow pilot pointer |
