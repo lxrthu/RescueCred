@@ -245,3 +245,7 @@
 | 2026-07-21 16:30 | /run-experiment | refine-logs/GOAL_DIRECTED_ACTIVE_SHADOW_PILOT_PLAN_20260721.md | plan | fixed Goal-Directed ActiveShadow Pilot 0 protocol |
 | 2026-07-21 16:30 | /run-experiment | refine-logs/GOAL_DIRECTED_ACTIVE_SHADOW_PILOT_PLAN.md | plan | latest Goal-Directed ActiveShadow pilot pointer |
 | 2026-07-21 16:50 | /monitor-experiment | refine-logs/GOAL_DIRECTED_ACTIVE_SHADOW_PILOT_ERRATUM_20260721.md | pre-label repair | records the 16-event public eligibility ceiling and reduced non-confirmatory minimum |
+| 2026-07-21 15:10 | /experiment-plan | refine-logs/EDITCREDIT_EXPERIMENT_PLAN_20260721_151030.md | implementation | timestamped claim-driven EditCredit minimal experiment plan |
+| 2026-07-21 15:10 | /experiment-plan | refine-logs/EDITCREDIT_EXPERIMENT_PLAN.md | implementation | latest EditCredit experiment plan pointer |
+| 2026-07-21 15:10 | /experiment-plan | refine-logs/EDITCREDIT_EXPERIMENT_TRACKER_20260721_151030.md | implementation | timestamped EditCredit run tracker |
+| 2026-07-21 15:10 | /experiment-plan | refine-logs/EDITCREDIT_EXPERIMENT_TRACKER.md | implementation | latest EditCredit tracker pointer |
