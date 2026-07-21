@@ -8,7 +8,11 @@ from pathlib import Path
 from typing import Any
 
 from rescuecredit.deltaguard_baseline import compute_v7_baseline_scores
-from rescuecredit.deltaguard_evaluation import evaluate_deltaguard, label_from_decision
+from rescuecredit.deltaguard_evaluation import (
+    compare_goal_contract_ablation,
+    evaluate_deltaguard,
+    label_from_decision,
+)
 from rescuecredit.deltaguard_probe import action_hash
 from rescuecredit.deltaguard_protocol import (
     PROTOCOL_STATUS,
@@ -106,6 +110,37 @@ def main() -> None:
         max_probe_rate=float(config["max_probe_rate"]),
         alpha=float(config["risk_alpha"]),
     )
+    receipt_only_rows = [
+        {
+            **row,
+            "reverse_score": float(row.get("receipt_only_reverse_score", 0.5)),
+            "contract_reverse_score": float(
+                row.get("receipt_only_reverse_score", 0.5)
+            ),
+        }
+        for row in probe_rows
+    ]
+    receipt_only_summary = evaluate_deltaguard(
+        source_rows=source_rows,
+        probe_rows=receipt_only_rows,
+        labels=labels,
+        baseline_scores=baselines,
+        min_class_per_family=int(config["min_class_per_family"]),
+        min_auc=float(config["min_typed_delta_roc_auc"]),
+        min_auc_gain=float(config["min_auc_gain_over_v7"]),
+        max_probe_rate=float(config["max_probe_rate"]),
+        alpha=float(config["risk_alpha"]),
+    )
+    summary["receipt_only_ablation"] = receipt_only_summary
+    summary["goal_contract_ablation"] = compare_goal_contract_ablation(
+        summary,
+        receipt_only_summary,
+        min_auc_gain=float(config["min_goal_auc_gain_over_receipt_only"]),
+    )
+    summary["goal_contract_feasibility_passed"] = bool(
+        summary["feasibility_passed"]
+        and summary["goal_contract_ablation"]["passed"]
+    )
     predictions = [
         {
             "event_id": str(row["event_id"]),
@@ -116,6 +151,16 @@ def main() -> None:
             "typed_delta_score": float(
                 next(
                     (probe["reverse_score"] for probe in probe_rows if probe["event_id"] == row["event_id"]),
+                    0.5,
+                )
+            ),
+            "receipt_only_score": float(
+                next(
+                    (
+                        probe.get("receipt_only_reverse_score", 0.5)
+                        for probe in probe_rows
+                        if probe["event_id"] == row["event_id"]
+                    ),
                     0.5,
                 )
             ),

@@ -1,4 +1,7 @@
-from rescuecredit.deltaguard_evaluation import evaluate_deltaguard
+from rescuecredit.deltaguard_evaluation import (
+    compare_goal_contract_ablation,
+    evaluate_deltaguard,
+)
 
 
 def test_separate_probe_auc_and_whole_stream_metrics():
@@ -64,3 +67,15 @@ def test_fixed_cohort_returns_inconclusive_without_class_coverage():
         assert "Rescue and Reverse" in str(error)
     else:
         raise AssertionError("single-class stream should not produce routing metrics")
+
+
+def test_goal_contract_requires_frozen_gain_over_receipt_only():
+    goal = {"conditional_discriminability": {"typed_delta_roc_auc": 0.80}}
+    receipt = {"conditional_discriminability": {"typed_delta_roc_auc": 0.76}}
+    result = compare_goal_contract_ablation(goal, receipt, min_auc_gain=0.05)
+    assert result["auc_gain"] < 0.05
+    assert result["passed"] is False
+
+    receipt["conditional_discriminability"]["typed_delta_roc_auc"] = 0.70
+    result = compare_goal_contract_ablation(goal, receipt, min_auc_gain=0.05)
+    assert result["passed"] is True

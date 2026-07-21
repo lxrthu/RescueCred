@@ -15,6 +15,36 @@ def label_from_decision(decision: str) -> int:
     raise ValueError(f"unsupported exact Shadow decision: {decision}")
 
 
+def compare_goal_contract_ablation(
+    goal_summary: Mapping[str, Any],
+    receipt_only_summary: Mapping[str, Any],
+    *,
+    min_auc_gain: float,
+) -> dict[str, Any]:
+    goal = goal_summary.get("conditional_discriminability")
+    receipt = receipt_only_summary.get("conditional_discriminability")
+    if not isinstance(goal, Mapping) or not isinstance(receipt, Mapping):
+        return {
+            "status": "inconclusive",
+            "goal_contract_auc": None,
+            "receipt_only_auc": None,
+            "auc_gain": None,
+            "min_auc_gain": min_auc_gain,
+            "passed": False,
+        }
+    goal_auc = float(goal["typed_delta_roc_auc"])
+    receipt_auc = float(receipt["typed_delta_roc_auc"])
+    gain = goal_auc - receipt_auc
+    return {
+        "status": "completed",
+        "goal_contract_auc": goal_auc,
+        "receipt_only_auc": receipt_auc,
+        "auc_gain": gain,
+        "min_auc_gain": min_auc_gain,
+        "passed": gain >= min_auc_gain,
+    }
+
+
 def contract_retention(
     rows: Sequence[Mapping[str, Any]], families: Sequence[str]
 ) -> dict[str, Any]:

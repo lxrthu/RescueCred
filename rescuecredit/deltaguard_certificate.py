@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Sequence
 
+from rescuecredit.deltaguard_goal_contract import goal_predicate_rows
 from rescuecredit.deltaguard_observers import ObserverPredicate
 
 
@@ -113,6 +114,33 @@ def build_delta_certificate(evidence: Mapping[str, Any]) -> dict[str, Any]:
             "evidence_scope": "explicit action receipt exception only",
         }
     )
+    contract = evidence.get("goal_contract")
+    if isinstance(contract, Mapping):
+        for goal_row in goal_predicate_rows(contract, evidence):
+            delta_a = goal_row.get("delta_a", UNKNOWN)
+            delta_b = goal_row.get("delta_b", UNKNOWN)
+            known = delta_a != UNKNOWN and delta_b != UNKNOWN
+            required_unknown = required_unknown or (
+                bool(goal_row.get("required")) and not known
+            )
+            if known and bool(goal_row.get("routing_admissible")):
+                known_a.append(int(delta_a))
+                known_b.append(int(delta_b))
+                if int(delta_a) > int(delta_b):
+                    witness_a.append(str(goal_row["predicate_id"]))
+                elif int(delta_b) > int(delta_a):
+                    witness_b.append(str(goal_row["predicate_id"]))
+            rows.append(
+                {
+                    "pre": None,
+                    "post_a": delta_a,
+                    "post_b": delta_b,
+                    "pre_value_hash": None,
+                    "a_value_hash": None,
+                    "b_value_hash": None,
+                    **goal_row,
+                }
+            )
     for predicate in plan:
         pre_value = extract_value(pre[predicate.predicate_id], predicate)
         value_a = extract_value(post_a[predicate.predicate_id], predicate)
@@ -166,7 +194,11 @@ def build_delta_certificate(evidence: Mapping[str, Any]) -> dict[str, Any]:
     else:
         relation, score, witness = "incomparable", 0.5, []
     return {
-        "version": "public-paired-delta-v2",
+        "version": (
+            "public-paired-delta-v3-goal-contract"
+            if isinstance(contract, Mapping)
+            else "public-paired-delta-v2"
+        ),
         "action_hash_a": evidence.get("action_hash_a"),
         "action_hash_b": evidence.get("action_hash_b"),
         "relation": relation,
@@ -178,4 +210,7 @@ def build_delta_certificate(evidence: Mapping[str, Any]) -> dict[str, Any]:
         "witness_predicates": witness,
         "predicates": rows,
         "prefix_unchanged": evidence.get("prefix_unchanged") is True,
+        "goal_contract_sha256": (
+            contract.get("sha256") if isinstance(contract, Mapping) else None
+        ),
     }

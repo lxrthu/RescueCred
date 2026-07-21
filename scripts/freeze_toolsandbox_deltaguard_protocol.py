@@ -20,6 +20,7 @@ from rescuecredit.logging import write_json
 
 SOURCE_PATHS = (
     "rescuecredit/deltaguard_observers.py",
+    "rescuecredit/deltaguard_goal_contract.py",
     "rescuecredit/deltaguard_probe.py",
     "rescuecredit/deltaguard_certificate.py",
     "rescuecredit/deltaguard_contract.py",

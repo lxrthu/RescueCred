@@ -31,6 +31,16 @@ receipt 本身作为保守证据：只有一边明确执行成功而另一边出
 优势；两边都成功、异常含 `already/unchanged/no change` 或证据冲突时一律弃权并
 保持 B。该规则不判断语义相关性，也不读取 reference action。
 
+V3 Goal Contract 在任何 branch receipt 产生前，根据可见用户指令、固定 A/B 与
+公开 schema 生成并写入 protocol lock。它只加入三类确定性公开谓词：工具 family
+是否与指令显式目标一致、动作参数中有多少值可在指令中验证来源、返回结果包含多少
+已锁定目标值。未在指令中逐字或规范化出现的值不能进入 contract。Gate 会验证
+contract 的 pre-observation 标记、内容哈希及 freeze/collection/certificate 三段
+一致性，并在同一批 probe 上独立报告 V2 receipt-only ablation。
+其中 role alignment 与 grounded-argument coverage 只用于诊断，不能进入路由
+Pareto 向量；恢复 A 必须至少有一个真实 post-receipt 或 state witness。V3 还要求
+conditional AUC 比同批 V2 receipt-only 至少高 0.05，否则方法 Gate 失败。
+
 ## 一次性准备物理隔离的 public bank
 
 这一步属于已有 Shadow pair bank 的离线封存，不得与新的 DeltaGuard collect

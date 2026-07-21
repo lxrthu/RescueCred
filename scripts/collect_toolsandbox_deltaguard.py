@@ -9,6 +9,7 @@ from typing import Any, Mapping
 
 from environments.toolsandbox import ToolSandboxRuntime
 from rescuecredit.deltaguard_certificate import build_delta_certificate
+from rescuecredit.deltaguard_goal_contract import build_goal_contract
 from rescuecredit.deltaguard_observers import (
     action_pair_family,
     build_observer_plan,
@@ -71,6 +72,8 @@ def main() -> None:
     prefix_actions_replayed = 0
     predicate_pairs = 0
     unknown_predicate_pairs = 0
+    goal_predicates = 0
+    goal_witnesses = 0
     for index, frozen in enumerate(protocol["source_events"], start=1):
         event_id = str(frozen["event_id"])
         public = public_by_id.get(event_id)
@@ -85,6 +88,7 @@ def main() -> None:
             "selected": bool(frozen["selected"]),
             "action_hash_a_at_freeze": str(frozen["action_hash_a"]),
             "action_hash_b_at_freeze": str(frozen["action_hash_b"]),
+            "goal_contract_sha256_at_freeze": str(frozen["goal_contract_sha256"]),
         }
         source_ledger.append(source_row)
         if not source_row["selected"]:
@@ -123,6 +127,22 @@ def main() -> None:
                 raise RuntimeError("observer predicate count changed during public replay")
             if public_structure_digest(plan_structure_payload(plan)) != frozen["plan_structure"]:
                 raise RuntimeError("observer plan structure changed during public replay")
+            goal_contract = build_goal_contract(
+                instruction=visible_instruction(
+                    [row for row in history if isinstance(row, Mapping)]
+                ),
+                action_a=public["action_a"],
+                action_b=public["action_b"],
+                schemas=[
+                    schema
+                    for schema in public["treatment_public_tool_schemas"]
+                    if isinstance(schema, Mapping)
+                ],
+            )
+            if goal_contract != frozen.get("goal_contract"):
+                raise RuntimeError("pre-observation Goal Contract changed during replay")
+            if goal_contract["sha256"] != frozen.get("goal_contract_sha256"):
+                raise RuntimeError("pre-observation Goal Contract digest mismatch")
             evidence = run_paired_probe(
                 runtime=runtime,
                 prefix=prefix,
@@ -131,7 +151,11 @@ def main() -> None:
                 plan=plan,
             )
             evidence["receipt_family"] = replayed_family
+            evidence["goal_contract"] = goal_contract
             certificate = build_delta_certificate(evidence)
+            receipt_only_evidence = dict(evidence)
+            receipt_only_evidence.pop("goal_contract", None)
+            receipt_only_certificate = build_delta_certificate(receipt_only_evidence)
             observer_calls += (
                 len(evidence["pre_observations"])
                 + len(evidence["branch_a"]["post_observations"])
@@ -140,6 +164,14 @@ def main() -> None:
             branch_action_executions += 2
             prefix_actions_replayed += int(replay_audit["prefix_actions_replayed"])
             predicate_pairs += len(certificate["predicates"])
+            goal_predicates += sum(
+                str(row["predicate_id"]).startswith("goal:")
+                for row in certificate["predicates"]
+            )
+            goal_witnesses += sum(
+                str(predicate_id).startswith("goal:")
+                for predicate_id in certificate["witness_predicates"]
+            )
             unknown_predicate_pairs += sum(
                 row["delta_a"] == "unknown" or row["delta_b"] == "unknown"
                 for row in certificate["predicates"]
@@ -160,6 +192,14 @@ def main() -> None:
                     "certificate": certificate,
                     "reverse_score": float(certificate["reverse_score"]),
                     "route_to_a": bool(certificate["route_to_a"]),
+                    "receipt_only_reverse_score": float(
+                        receipt_only_certificate["reverse_score"]
+                    ),
+                    "receipt_only_certificate": receipt_only_certificate,
+                    "receipt_only_route_to_a": bool(
+                        receipt_only_certificate["route_to_a"]
+                    ),
+                    "goal_contract_enabled": True,
                     "contract_enabled": contract_enabled,
                     "contract_reverse_score": contract_score,
                     "contract_route_to_a": contract_score == 1.0,
@@ -222,6 +262,8 @@ def main() -> None:
         "prefix_actions_replayed": prefix_actions_replayed,
         "predicate_pairs": predicate_pairs,
         "unknown_predicate_pairs": unknown_predicate_pairs,
+        "goal_predicates": goal_predicates,
+        "goal_witnesses": goal_witnesses,
         "unknown_rate": unknown_predicate_pairs / predicate_pairs if predicate_pairs else 0.0,
         "rollback_failures": 0,
         "observer_calls_per_successful_probe": (
@@ -232,6 +274,7 @@ def main() -> None:
         "probe_ledger_sha256": file_sha256(probe_path),
         "protocol_lock_sha256": file_sha256(args.protocol_lock),
         "contract_ablation_enabled": False,
+        "goal_contracts_generated_before_receipts": True,
         "labels_read": False,
         "official_evaluator_called": False,
         "hidden_state_exported": False,

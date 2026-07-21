@@ -203,3 +203,11 @@
 | 2026-07-21 02:06 | /experiment-bridge | refine-logs/TOOLSANDBOX_DELTAGUARD_TRACKER.md | implementation | latest DeltaGuard tracker pointer |
 | 2026-07-21 02:06 | /experiment-bridge | refine-logs/TOOLSANDBOX_DELTAGUARD_CODE_REVIEW_20260721_020644.md | review | timestamped independent review ending DEPLOY YES |
 | 2026-07-21 02:06 | /experiment-bridge | refine-logs/TOOLSANDBOX_DELTAGUARD_CODE_REVIEW.md | review | latest DeltaGuard deployment review pointer |
+| 2026-07-21 09:50 | /experiment-bridge | refine-logs/TOOLSANDBOX_GOAL_CONTRACT_PLAN_20260721_095022.md | implementation | timestamped pre-observation Goal Contract plan |
+| 2026-07-21 09:50 | /experiment-bridge | refine-logs/TOOLSANDBOX_GOAL_CONTRACT_PLAN.md | implementation | latest Goal Contract plan pointer |
+| 2026-07-21 09:50 | /experiment-bridge | refine-logs/TOOLSANDBOX_GOAL_CONTRACT_TRACKER_20260721_095022.md | implementation | timestamped Goal Contract run tracker |
+| 2026-07-21 09:50 | /experiment-bridge | refine-logs/TOOLSANDBOX_GOAL_CONTRACT_TRACKER.md | implementation | latest Goal Contract tracker pointer |
+| 2026-07-21 09:50 | /experiment-bridge | rescuecredit/deltaguard_goal_contract.py | implementation | pre-observation public goal compiler and predicate evaluator |
+| 2026-07-21 09:50 | /experiment-bridge | tests/test_deltaguard_goal_contract.py | implementation | goal grounding, receipt matching, and fail-closed certificate tests |
+| 2026-07-21 10:09 | /experiment-bridge | refine-logs/TOOLSANDBOX_GOAL_CONTRACT_CODE_REVIEW_20260721_100910.md | review | timestamped Goal Contract review ending DEPLOY YES |
+| 2026-07-21 10:09 | /experiment-bridge | refine-logs/TOOLSANDBOX_GOAL_CONTRACT_CODE_REVIEW.md | review | latest Goal Contract deployment review pointer |

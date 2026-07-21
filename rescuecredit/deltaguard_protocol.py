@@ -12,6 +12,7 @@ from rescuecredit.deltaguard_observers import (
     plan_family,
     plan_structure_payload,
 )
+from rescuecredit.deltaguard_goal_contract import build_goal_contract
 from rescuecredit.deltaguard_probe import acquisition_selected, action_hash
 from rescuecredit.deltaguard_toolsandbox import public_structure_digest
 from rescuecredit.frozen_bank import read_jsonl
@@ -28,6 +29,7 @@ FULL_CONFIG = {
     "min_class_per_family": 6,
     "min_typed_delta_roc_auc": 0.75,
     "min_auc_gain_over_v7": 0.10,
+    "min_goal_auc_gain_over_receipt_only": 0.05,
     "risk_alpha": 0.05,
 }
 
@@ -94,13 +96,20 @@ def public_event_projection(row: Mapping[str, Any]) -> dict[str, Any] | None:
     if action_a == action_b:
         return None
     public_schemas = [schema for schema in schemas if isinstance(schema, Mapping)]
+    instruction = visible_instruction(
+        [item for item in history if isinstance(item, Mapping)]
+    )
     plan = build_observer_plan(
         action_a=action_a,
         action_b=action_b,
         schemas=public_schemas,
-        instruction=visible_instruction(
-            [item for item in history if isinstance(item, Mapping)]
-        ),
+        instruction=instruction,
+    )
+    goal_contract = build_goal_contract(
+        instruction=instruction,
+        action_a=action_a,
+        action_b=action_b,
+        schemas=public_schemas,
     )
     family = plan_family(plan) or action_pair_family(
         action_a, action_b, public_schemas
@@ -118,6 +127,8 @@ def public_event_projection(row: Mapping[str, Any]) -> dict[str, Any] | None:
         "action_structure_b": public_structure_digest(action_b),
         "plan_structure": public_structure_digest(plan_structure_payload(plan)),
         "plan_predicates": len(plan),
+        "goal_contract": goal_contract,
+        "goal_contract_sha256": str(goal_contract["sha256"]),
     }
 
 
