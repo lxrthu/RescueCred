@@ -29,10 +29,14 @@ mkdir -p "$OUT"
 "$PYTHON" -m py_compile rescuecredit/edit_credit.py \
   scripts/freeze_toolsandbox_editcredit_protocol.py \
   scripts/audit_editcredit_gradients.py \
+  scripts/audit_toolsandbox_editcredit_gradients.py \
+  scripts/check_toolsandbox_editcredit_variance.py \
+  scripts/check_toolsandbox_editcredit_efficiency.py \
   scripts/train_toolsandbox_editcredit.py \
   scripts/evaluate_toolsandbox_editcredit.py \
   scripts/check_toolsandbox_editcredit_gate.py
 "$PYTHON" -m pytest -q tests/test_edit_credit.py tests/test_editcredit_gate.py \
+  tests/test_editcredit_efficiency.py \
   tests/test_toolsandbox_preference.py \
   | tee "$OUT/sanity.log"
 "$PYTHON" scripts/audit_editcredit_gradients.py \
@@ -51,6 +55,40 @@ mapfile -t GPUS < <(
 )
 [ "${#GPUS[@]}" -ge 2 ] || { echo "EditCredit requires two visible GPUs" >&2; exit 2; }
 echo "FULL_ACTION_GPU=${GPUS[0]} EDITCREDIT_GPU=${GPUS[1]}"
+
+gradient_audit() {
+  local method="$1" gpu="$2" directory="$OUT/gradient/$method"
+  mkdir -p "$directory"
+  CUDA_VISIBLE_DEVICES="$gpu" "$PYTHON" scripts/audit_toolsandbox_editcredit_gradients.py \
+    --method "$method" --model "$MODEL" --train-file "$TRAIN_FILE" \
+    --protocol-lock "$LOCK" --seed 42 --max-length 2048 --buckets 128 \
+    --output-dir "$directory" > "$directory/console.log" 2>&1
+}
+
+echo EDITCREDIT_GRADIENT_AUDIT_START
+gradient_audit full_action "${GPUS[0]}" & G1=$!
+gradient_audit editcredit "${GPUS[1]}" & G2=$!
+trap 'kill "$G1" "$G2" 2>/dev/null || true' EXIT INT TERM
+set +e
+wait "$G1"; S1=$?
+wait "$G2"; S2=$?
+set -e
+trap - EXIT INT TERM
+[ "$S1" -eq 0 ] && [ "$S2" -eq 0 ] || {
+  echo "gradient audit failed full_action=$S1 editcredit=$S2" >&2
+  exit 1
+}
+set +e
+"$PYTHON" scripts/check_toolsandbox_editcredit_variance.py \
+  --protocol-lock "$LOCK" --train-file "$TRAIN_FILE" \
+  --full-summary "$OUT/gradient/full_action/summary.json" \
+  --full-sketches "$OUT/gradient/full_action/gradient_sketches.jsonl" \
+  --edit-summary "$OUT/gradient/editcredit/summary.json" \
+  --edit-sketches "$OUT/gradient/editcredit/gradient_sketches.jsonl" \
+  --output "$OUT/variance_gate.json" | tee "$OUT/variance_gate.log"
+VARIANCE_STATUS=${PIPESTATUS[0]}
+set -e
+echo "EDITCREDIT_VARIANCE_GATE_STATUS=$VARIANCE_STATUS"
 
 train_fold() {
   local method="$1" fold="$2" gpu="$3" directory="$OUT/$method/fold$fold"
@@ -75,6 +113,29 @@ eval_fold() {
     --train-file "$TRAIN_FILE" --protocol-lock "$LOCK" \
     --max-length 2048 --fp32 --output-dir "$directory/eval" \
     > "$directory/eval_console.log" 2>&1
+}
+
+eval_curve() {
+  local method="$1" fold="$2" gpu="$3" presentations="$4"
+  local directory="$OUT/$method/fold$fold"
+  local tag; printf -v tag 'p%06d' "$presentations"
+  local curve="$directory/curve/$tag"
+  mkdir -p "$curve"
+  local checkpoint_args=()
+  if [ "$presentations" -eq 0 ]; then
+    checkpoint_args=(--base-only --checkpoint-presentations 0)
+  else
+    checkpoint_args=(
+      --adapter "$directory/checkpoints/$tag/adapter"
+      --checkpoint-presentations "$presentations"
+    )
+  fi
+  CUDA_VISIBLE_DEVICES="$gpu" "$PYTHON" scripts/evaluate_toolsandbox_editcredit.py \
+    --method "$method" --fold "$fold" --model "$MODEL" \
+    "${checkpoint_args[@]}" --run-summary "$directory/run_summary.json" \
+    --train-file "$TRAIN_FILE" --protocol-lock "$LOCK" \
+    --max-length 2048 --fp32 --output-dir "$curve" \
+    > "$curve/console.log" 2>&1
 }
 
 for fold in 0 1 2 3 4; do
@@ -105,6 +166,21 @@ for fold in 0 1 2 3 4; do
     echo "fold $fold evaluation failed full_action=$S1 editcredit=$S2" >&2
     exit 1
   }
+  for presentations in 0 40 80 128 256; do
+    echo "EDITCREDIT_FOLD_${fold}_CURVE_${presentations}_START"
+    eval_curve full_action "$fold" "${GPUS[0]}" "$presentations" & C1=$!
+    eval_curve editcredit "$fold" "${GPUS[1]}" "$presentations" & C2=$!
+    trap 'kill "$C1" "$C2" 2>/dev/null || true' EXIT INT TERM
+    set +e
+    wait "$C1"; S1=$?
+    wait "$C2"; S2=$?
+    set -e
+    trap - EXIT INT TERM
+    [ "$S1" -eq 0 ] && [ "$S2" -eq 0 ] || {
+      echo "fold $fold curve $presentations failed full_action=$S1 editcredit=$S2" >&2
+      exit 1
+    }
+  done
   echo "EDITCREDIT_FOLD_${fold}_DONE"
 done
 
@@ -122,4 +198,16 @@ if [ "$STATUS" -eq 0 ]; then
 else
   echo EDITCREDIT_SEED42_GATE_FAIL
 fi
-exit "$STATUS"
+echo "EDITCREDIT_FINAL_GATE_STATUS=$STATUS"
+
+set +e
+"$PYTHON" scripts/check_toolsandbox_editcredit_efficiency.py \
+  --protocol-lock "$LOCK" --train-file "$TRAIN_FILE" --root "$OUT" \
+  --variance-gate "$OUT/variance_gate.json" --final-gate "$OUT/feasibility_gate.json" \
+  --output "$OUT/efficiency_gate.json" | tee "$OUT/efficiency_gate.log"
+EFFICIENCY_STATUS=${PIPESTATUS[0]}
+set -e
+[ "$EFFICIENCY_STATUS" -eq 0 ] \
+  && echo EDITCREDIT_EFFICIENCY_GATE_PASS \
+  || echo EDITCREDIT_EFFICIENCY_GATE_FAIL
+exit "$EFFICIENCY_STATUS"

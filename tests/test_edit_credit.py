@@ -13,7 +13,10 @@ from rescuecredit.edit_credit import (
     intervention_policy_loss,
     select_rescue_constrained_threshold,
     fold_role,
+    gradient_noise_scale,
     stratified_group_folds,
+    minibatch_bootstrap_gradient_mse,
+    trapezoid_auc,
     summarize_selection,
     symmetrized_edit_margin,
 )
@@ -264,3 +267,41 @@ def test_frozen_126_pair_protocol_has_complete_crossfit_roles(tmp_path):
                 "rescue_preference",
                 "reverse_preference",
             }
+
+
+def test_gradient_noise_and_convergence_helpers_are_deterministic():
+    low_noise = [[1.0, 0.0], [1.1, 0.0], [0.9, 0.0], [1.0, 0.0]]
+    high_noise = [[2.0, 0.0], [0.0, 0.0], [2.0, 0.0], [0.0, 0.0]]
+    assert gradient_noise_scale(low_noise)["gradient_noise_scale"] < gradient_noise_scale(
+        high_noise
+    )["gradient_noise_scale"]
+    first = minibatch_bootstrap_gradient_mse(
+        low_noise, batch_size=2, replicates=50, seed=42
+    )
+    second = minibatch_bootstrap_gradient_mse(
+        low_noise, batch_size=2, replicates=50, seed=42
+    )
+    assert first == second
+    assert trapezoid_auc([(0, 0.0), (10, 1.0)]) == pytest.approx(0.5)
+
+
+def test_countsketch_is_not_periodic_and_initialization_hash_is_sensitive():
+    torch = pytest.importorskip("torch")
+    from scripts.audit_toolsandbox_editcredit_gradients import (
+        _countsketch_maps,
+        _trainable_parameter_sha256,
+    )
+
+    parameter = torch.nn.Parameter(torch.arange(384, dtype=torch.float32))
+    maps, count = _countsketch_maps([parameter], buckets=128, seed=42)
+    bucket, sign = maps[0]
+    assert count == 384
+    repeated_pairs = sum(
+        int(bucket[index] == bucket[index + 128] and sign[index] == sign[index + 128])
+        for index in range(256)
+    )
+    assert repeated_pairs < 32
+    first = _trainable_parameter_sha256([("adapter", parameter)])
+    parameter.data[0] += 1.0
+    second = _trainable_parameter_sha256([("adapter", parameter)])
+    assert first != second

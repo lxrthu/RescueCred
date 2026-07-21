@@ -56,12 +56,14 @@ def main() -> None:
     parser.add_argument("--method", choices=("full_action", "editcredit"), required=True)
     parser.add_argument("--fold", type=int, required=True)
     parser.add_argument("--model", type=Path, required=True)
-    parser.add_argument("--adapter", type=Path, required=True)
+    parser.add_argument("--adapter", type=Path)
     parser.add_argument("--run-summary", type=Path, required=True)
     parser.add_argument("--train-file", type=Path, required=True)
     parser.add_argument("--protocol-lock", type=Path, required=True)
     parser.add_argument("--max-length", type=int, default=2048)
     parser.add_argument("--fp32", action="store_true")
+    parser.add_argument("--checkpoint-presentations", type=int, default=-1)
+    parser.add_argument("--base-only", action="store_true")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
 
@@ -73,8 +75,28 @@ def main() -> None:
         raise ValueError("run summary method/fold mismatch")
     if run.get("protocol_lock_sha256") != file_sha256(args.protocol_lock):
         raise ValueError("run is not bound to protocol")
-    if run.get("adapter") != str(args.adapter) or run.get("adapter_sha256") != directory_sha256(args.adapter):
-        raise ValueError("adapter identity mismatch")
+    checkpoint_presentations = (
+        int(run["presentations"])
+        if args.checkpoint_presentations < 0
+        else args.checkpoint_presentations
+    )
+    checkpoint_tag = f"p{checkpoint_presentations:06d}"
+    checkpoint = run.get("checkpoints", {}).get(checkpoint_tag)
+    if not isinstance(checkpoint, dict):
+        raise ValueError("requested checkpoint is absent from run summary")
+    if args.base_only != (checkpoint_presentations == 0):
+        raise ValueError("--base-only is required exactly for presentation zero")
+    expected_adapter = checkpoint.get("adapter")
+    if args.base_only:
+        if args.adapter is not None or expected_adapter is not None:
+            raise ValueError("base checkpoint cannot bind an adapter")
+        adapter_sha256 = None
+    else:
+        if args.adapter is None or expected_adapter != str(args.adapter):
+            raise ValueError("checkpoint adapter path mismatch")
+        adapter_sha256 = directory_sha256(args.adapter)
+        if checkpoint.get("adapter_sha256") != adapter_sha256:
+            raise ValueError("checkpoint adapter identity mismatch")
     if file_sha256(args.train_file) != protocol.get("train_sha256"):
         raise ValueError("pair bank identity mismatch")
     if directory_sha256(args.model) != protocol.get("base_model_sha256"):
@@ -93,7 +115,7 @@ def main() -> None:
     base = AutoModelForCausalLM.from_pretrained(
         args.model, local_files_only=True, trust_remote_code=True, torch_dtype=dtype
     ).cuda()
-    model = PeftModel.from_pretrained(base, args.adapter).eval()
+    model = base.eval() if args.base_only else PeftModel.from_pretrained(base, args.adapter).eval()
     device = next(model.parameters()).device
 
     rows = read_jsonl(args.train_file)
@@ -189,9 +211,11 @@ def main() -> None:
         "stage": "toolsandbox_editcredit_crossfit_evaluation",
         "method": args.method,
         "fold": args.fold,
+        "checkpoint_presentations": checkpoint_presentations,
+        "checkpoint_tag": checkpoint_tag,
         "protocol_lock_sha256": file_sha256(args.protocol_lock),
         "run_summary_sha256": file_sha256(args.run_summary),
-        "adapter_sha256": directory_sha256(args.adapter),
+        "adapter_sha256": adapter_sha256,
         "public_scores_sha256": file_sha256(scores_path),
         "predictions_sha256": file_sha256(predictions_path),
         "calibration_events": len(calibration),

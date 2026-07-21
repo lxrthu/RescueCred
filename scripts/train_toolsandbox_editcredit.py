@@ -144,6 +144,34 @@ def main() -> None:
     decision_counter: Counter[str] = Counter()
     side_labels: list[int] = []
     side_scores: list[float] = []
+    checkpoint_targets = {
+        int(value)
+        for value in protocol["efficiency_config"]["checkpoint_presentations"]
+        if int(value) not in {0, args.epochs * args.presentations_per_epoch}
+    }
+    checkpoint_records: dict[str, dict[str, Any]] = {
+        "p000000": {
+            "presentations": 0,
+            "optimizer_steps": 0,
+            "adapter": None,
+            "adapter_sha256": None,
+            "base_model_sha256": protocol["base_model_sha256"],
+            "wall_time_sec": 0.0,
+        }
+    }
+
+    def save_checkpoint(presentation_count: int) -> None:
+        tag = f"p{presentation_count:06d}"
+        adapter = args.output_dir / "checkpoints" / tag / "adapter"
+        model.save_pretrained(adapter)
+        checkpoint_records[tag] = {
+            "presentations": presentation_count,
+            "optimizer_steps": optimizer_steps,
+            "adapter": str(adapter),
+            "adapter_sha256": directory_sha256(adapter),
+            "base_model_sha256": protocol["base_model_sha256"],
+            "wall_time_sec": time.time() - started,
+        }
 
     for epoch in range(args.epochs):
         epoch_rows = balanced_causal_epoch_order(
@@ -243,6 +271,8 @@ def main() -> None:
                 optimizer.zero_grad(set_to_none=True)
                 accumulated = 0
                 optimizer_steps += 1
+                if presentations in checkpoint_targets:
+                    save_checkpoint(presentations)
     if accumulated:
         scale = args.gradient_accumulation / accumulated
         for parameter in model.parameters():
@@ -255,6 +285,36 @@ def main() -> None:
     adapter_dir = args.output_dir / "adapter"
     model.save_pretrained(adapter_dir)
     tokenizer.save_pretrained(adapter_dir)
+    final_presentations = args.epochs * args.presentations_per_epoch
+    final_tag = f"p{final_presentations:06d}"
+    checkpoint_records[final_tag] = {
+        "presentations": final_presentations,
+        "optimizer_steps": optimizer_steps,
+        "adapter": str(adapter_dir),
+        "adapter_sha256": directory_sha256(adapter_dir),
+        "base_model_sha256": protocol["base_model_sha256"],
+        "wall_time_sec": time.time() - started,
+    }
+    expected_checkpoints = {
+        f"p{int(value):06d}"
+        for value in protocol["efficiency_config"]["checkpoint_presentations"]
+    }
+    if set(checkpoint_records) != expected_checkpoints:
+        raise RuntimeError(
+            f"checkpoint schedule mismatch: actual={sorted(checkpoint_records)} "
+            f"expected={sorted(expected_checkpoints)}"
+        )
+    checkpoint_manifest_path = args.output_dir / "checkpoint_manifest.json"
+    write_json(
+        checkpoint_manifest_path,
+        {
+            "status": "completed",
+            "method": args.method,
+            "fold": args.fold,
+            "protocol_lock_sha256": file_sha256(args.protocol_lock),
+            "checkpoints": checkpoint_records,
+        },
+    )
     source_auc = empirical_binary_auc(side_labels, side_scores) if side_labels else None
     summary = {
         "status": "completed",
@@ -275,6 +335,9 @@ def main() -> None:
         "presented_decisions": dict(sorted(decision_counter.items())),
         "optimizer_steps": optimizer_steps,
         "reference_cache_entries": len(reference_cache),
+        "checkpoint_manifest": str(checkpoint_manifest_path),
+        "checkpoint_manifest_sha256": file_sha256(checkpoint_manifest_path),
+        "checkpoints": checkpoint_records,
         "presentation_side_label_auc": source_auc,
         "train_event_set_hash": event_set_hash(train_rows),
         "train_task_group_ids": sorted({str(row["task_id_hash"]) for row in train_rows}),

@@ -345,3 +345,81 @@ def fold_role(
     if group_fold == (test_fold + 1) % folds:
         return "calibration"
     return "train"
+
+
+def gradient_noise_scale(sketches: Sequence[Sequence[float]]) -> dict[str, float]:
+    if not sketches or not sketches[0]:
+        raise ValueError("gradient sketches must be non-empty")
+    width = len(sketches[0])
+    if any(len(row) != width for row in sketches):
+        raise ValueError("gradient sketches must have equal width")
+    count = len(sketches)
+    mean = [sum(float(row[index]) for row in sketches) / count for index in range(width)]
+    trace_variance = sum(
+        sum((float(row[index]) - mean[index]) ** 2 for index in range(width))
+        for row in sketches
+    ) / count
+    mean_squared_norm = sum(value * value for value in mean)
+    return {
+        "trace_variance": trace_variance,
+        "mean_squared_norm": mean_squared_norm,
+        "gradient_noise_scale": trace_variance / max(mean_squared_norm, 1e-24),
+    }
+
+
+def minibatch_bootstrap_gradient_mse(
+    sketches: Sequence[Sequence[float]],
+    *,
+    batch_size: int,
+    replicates: int,
+    seed: int,
+) -> dict[str, float]:
+    if not sketches:
+        raise ValueError("sketches must be non-empty")
+    if batch_size < 1 or replicates < 1:
+        raise ValueError("batch size and replicates must be positive")
+    width = len(sketches[0])
+    if any(len(row) != width for row in sketches):
+        raise ValueError("gradient sketches must have equal width")
+    full_mean = [
+        sum(float(row[index]) for row in sketches) / len(sketches)
+        for index in range(width)
+    ]
+    rng = random.Random(seed)
+    errors = []
+    for _ in range(replicates):
+        sampled_indices = [rng.randrange(len(sketches)) for _ in range(batch_size)]
+        estimate = [
+            sum(float(sketches[row][column]) for row in sampled_indices)
+            / len(sampled_indices)
+            for column in range(width)
+        ]
+        errors.append(
+            sum((estimate[index] - full_mean[index]) ** 2 for index in range(width))
+        )
+    ordered = sorted(errors)
+    return {
+        "replicates": float(replicates),
+        "batch_size": float(batch_size),
+        "mean_mse": sum(errors) / len(errors),
+        "median_mse": ordered[len(ordered) // 2],
+        "p95_mse": ordered[min(len(ordered) - 1, int(0.95 * len(ordered)))],
+    }
+
+
+def trapezoid_auc(points: Sequence[tuple[int, float]]) -> float:
+    if len(points) < 2:
+        raise ValueError("AULC requires at least two checkpoints")
+    ordered = sorted((int(step), float(value)) for step, value in points)
+    if len({step for step, _ in ordered}) != len(ordered):
+        raise ValueError("checkpoint steps must be unique")
+    span = ordered[-1][0] - ordered[0][0]
+    if span <= 0:
+        raise ValueError("checkpoint span must be positive")
+    area = sum(
+        (right_step - left_step) * (left_value + right_value) * 0.5
+        for (left_step, left_value), (right_step, right_value) in zip(
+            ordered, ordered[1:]
+        )
+    )
+    return area / span

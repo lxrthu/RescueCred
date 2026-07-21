@@ -263,3 +263,12 @@
 | 2026-07-21 15:42 | /experiment-bridge | refine-logs/EDITCREDIT_IMPLEMENTATION_RESULTS.md | implementation | latest EditCredit implementation results pointer |
 | 2026-07-21 15:46 | /experiment-bridge | refine-logs/EDITCREDIT_CODE_REVIEW_20260721_154622.md | review | three-pass independent review ending DEPLOY YES |
 | 2026-07-21 15:46 | /experiment-bridge | refine-logs/EDITCREDIT_CODE_REVIEW.md | review | latest EditCredit deployment review pointer |
+| 2026-07-21 15:55 | /experiment-bridge | refine-logs/EDITCREDIT_EFFICIENCY_PREREG_20260721_155518.md | preregistration | frozen pre-run variance and convergence metrics and joint gate |
+| 2026-07-21 16:20 | /experiment-bridge | scripts/audit_toolsandbox_editcredit_gradients.py | implementation | universal-hash CountSketch per-event LoRA gradient audit |
+| 2026-07-21 16:20 | /experiment-bridge | scripts/check_toolsandbox_editcredit_variance.py | validation | independent initialization-bound minibatch gradient variance gate |
+| 2026-07-21 16:20 | /experiment-bridge | scripts/check_toolsandbox_editcredit_efficiency.py | validation | independent checkpoint curve and p0-adjusted convergence gate |
+| 2026-07-21 16:20 | /experiment-bridge | tests/test_editcredit_efficiency.py | validation | variance artifact and initialization tamper regressions |
+| 2026-07-21 16:20 | /experiment-bridge | refine-logs/EDITCREDIT_EFFICIENCY_CODE_REVIEW_20260721_162005.md | review | timestamped independent review ending DEPLOY YES |
+| 2026-07-21 16:20 | /experiment-bridge | refine-logs/EDITCREDIT_EFFICIENCY_CODE_REVIEW.md | review | latest efficiency experiment deployment review pointer |
+| 2026-07-21 16:20 | /experiment-bridge | refine-logs/EDITCREDIT_EFFICIENCY_IMPLEMENTATION_RESULTS_20260721_162005.md | implementation | timestamped local validation and claim boundary |
+| 2026-07-21 16:20 | /experiment-bridge | refine-logs/EDITCREDIT_EFFICIENCY_IMPLEMENTATION_RESULTS.md | implementation | latest efficiency implementation result pointer |

@@ -32,6 +32,19 @@ CONFIG = {
     "rescue_delta": 0.02,
 }
 METHODS = ("full_action", "editcredit")
+EFFICIENCY_CONFIG = {
+    "checkpoint_presentations": [0, 40, 80, 128, 256, 378],
+    "gradient_sketch_buckets": 128,
+    "gradient_bootstrap_replicates": 2000,
+    "gradient_bootstrap_batch_size": 8,
+    "max_gradient_noise_scale_ratio": 0.70,
+    "max_minibatch_gradient_mse_ratio": 0.70,
+    "min_baseline_adjusted_balanced_auc_gain": 0.05,
+    "min_relative_balanced_auc_gain": 0.10,
+    "max_presentations_to_target_ratio": 0.50,
+    "require_final_balanced_noninferiority": True,
+    "max_final_rescue_drop": 0.02,
+}
 SOURCE_PATHS = (
     "rescuecredit/edit_credit.py",
     "rescuecredit/frozen_bank.py",
@@ -42,11 +55,16 @@ SOURCE_PATHS = (
     "scripts/train_toolsandbox_editcredit.py",
     "scripts/evaluate_toolsandbox_editcredit.py",
     "scripts/check_toolsandbox_editcredit_gate.py",
+    "scripts/audit_toolsandbox_editcredit_gradients.py",
+    "scripts/check_toolsandbox_editcredit_variance.py",
+    "scripts/check_toolsandbox_editcredit_efficiency.py",
     "scripts/cloud/run_toolsandbox_editcredit_seed42.sh",
     "tests/test_edit_credit.py",
     "tests/test_editcredit_gate.py",
+    "tests/test_editcredit_efficiency.py",
     "refine-logs/EDITCREDIT_EXPERIMENT_PLAN_20260721_151030.md",
     "refine-logs/EDITCREDIT_EXPERIMENT_PLAN_ERRATUM_20260721_154254.md",
+    "refine-logs/EDITCREDIT_EFFICIENCY_PREREG_20260721_155518.md",
 )
 
 
@@ -136,6 +154,7 @@ def build_protocol(
         "stage": "toolsandbox_editcredit_cross_task_seed42",
         "methods": list(METHODS),
         "config": CONFIG,
+        "efficiency_config": EFFICIENCY_CONFIG,
         "train_file": str(train_file),
         "train_sha256": file_sha256(train_file),
         "data_manifest": str(data_manifest_path),
