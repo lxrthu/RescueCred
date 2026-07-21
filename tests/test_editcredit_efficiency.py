@@ -149,3 +149,11 @@ def test_variance_gate_rejects_lora_initialization_mismatch(tmp_path: Path):
     assert result.returncode == 1
     checked = json.loads(output.read_text(encoding="utf-8"))
     assert checked["integrity_checks"]["same_lora_initialization"] is False
+
+
+def test_runner_does_not_expand_local_variables_before_assignment():
+    runner = Path("scripts/cloud/run_toolsandbox_editcredit_seed42.sh").read_text(
+        encoding="utf-8"
+    )
+    assert 'gpu="$2" directory="$OUT/gradient/$method"' not in runner
+    assert 'gpu="$3" directory="$OUT/$method/fold$fold"' not in runner

@@ -57,7 +57,8 @@ mapfile -t GPUS < <(
 echo "FULL_ACTION_GPU=${GPUS[0]} EDITCREDIT_GPU=${GPUS[1]}"
 
 gradient_audit() {
-  local method="$1" gpu="$2" directory="$OUT/gradient/$method"
+  local method="$1" gpu="$2"
+  local directory="$OUT/gradient/$method"
   mkdir -p "$directory"
   CUDA_VISIBLE_DEVICES="$gpu" "$PYTHON" scripts/audit_toolsandbox_editcredit_gradients.py \
     --method "$method" --model "$MODEL" --train-file "$TRAIN_FILE" \
@@ -91,7 +92,8 @@ set -e
 echo "EDITCREDIT_VARIANCE_GATE_STATUS=$VARIANCE_STATUS"
 
 train_fold() {
-  local method="$1" fold="$2" gpu="$3" directory="$OUT/$method/fold$fold"
+  local method="$1" fold="$2" gpu="$3"
+  local directory="$OUT/$method/fold$fold"
   mkdir -p "$directory"
   CUDA_VISIBLE_DEVICES="$gpu" "$PYTHON" scripts/train_toolsandbox_editcredit.py \
     --method "$method" --fold "$fold" --model "$MODEL" \
@@ -105,7 +107,8 @@ train_fold() {
 }
 
 eval_fold() {
-  local method="$1" fold="$2" gpu="$3" directory="$OUT/$method/fold$fold"
+  local method="$1" fold="$2" gpu="$3"
+  local directory="$OUT/$method/fold$fold"
   mkdir -p "$directory/eval"
   CUDA_VISIBLE_DEVICES="$gpu" "$PYTHON" scripts/evaluate_toolsandbox_editcredit.py \
     --method "$method" --fold "$fold" --model "$MODEL" \
