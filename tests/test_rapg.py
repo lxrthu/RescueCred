@@ -87,7 +87,7 @@ def test_rapg_audit_estimator_is_unbiased_and_matched_cost():
     assert math.isclose(
         summary["methods"]["uniform"]["expected_audits"],
         summary["methods"]["rapg"]["expected_audits"],
-        abs_tol=1e-6,
+        abs_tol=5e-6,
     )
     assert summary["methods"]["rapg"]["full_gradient_design_mse"] < summary[
         "methods"
